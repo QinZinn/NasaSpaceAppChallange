@@ -20,7 +20,7 @@ Giữ nguyên thuật ngữ tiếng Anh cho tên riêng (SAFFIRE-II, FLEX, ROC-A
 
 ## Mở đầu (0:00–0:45) — slide 1, 2
 
-"Xin chào các thầy cô, em là Zinnn.
+"Xin chào các thầy cô, em là Zinnn, đội "My team is kinda nameless".
 Năm 1967, trong một buổi thử trên bệ phóng, cabin Apollo 1 chứa 100 % oxy. Một đám cháy chớp nhoáng lan nhanh đến mức phi hành đoàn không kịp mở cửa; cửa khi đó cần 90 giây để mở, sau này NASA thay bằng cửa mở trong 3 giây [ev-26]. Năm 1997 trên trạm Mir, một bình tạo oxy bốc cháy: ngọn lửa dài khoảng ba feet cháy vài phút, chắn đường tới một trong hai tàu Soyuz thoát hiểm, khói dày mất nhiều giờ mới hút hết. Phi hành đoàn dùng ba bình bọt, và theo bài của NASA thì ngọn lửa cuối cùng *tự tắt* [ev-27].
 Căn cứ trên Mặt Trăng và Sao Hỏa cũng là môi trường kín. Câu hỏi của em: lửa trong vi trọng lực hành xử thế nào, và dữ liệu NASA nói chắc được đến đâu? Nếu thầy cô chỉ nhớ một điều: **trong 17 thí nghiệm giọt nhiên liệu ở khoảng 0,7 atm với 30–34 % oxy, không giọt nào tự tắt.**"
 
@@ -50,16 +50,16 @@ Về mô hình: hồi quy logistic và ridge, bootstrap 200 lần, cross-validat
 ## 4. Relevance (4:10–4:50) — slide 2, 4
 
 "Thử thách yêu cầu tóm tắt, xếp hạng và diễn giải dữ liệu cháy vi trọng lực của NASA cho an toàn cháy trên Mặt Trăng và Sao Hỏa; app làm ba việc đó.
-Về khí quyển thám hiểm, em chỉ nói định tính như NASA: oxy cao, áp suất thấp, và Saffire I đến III chưa phủ loại khí quyển này [ev-14]. App có nút 'Exploration atmosphere' nhưng đó chỉ là minh họa, chưa có nguồn; app ghi rõ như vậy và mô hình xem đó là ngoại suy.
+Về khí quyển thám hiểm, em chỉ nói định tính như NASA: oxy cao, áp suất thấp, và Saffire I đến III chưa phủ loại khí quyển này [ev-14]. App có nút 'Exploration atmosphere' (34 % oxy, 0,7 atm) nhưng đó chỉ là minh họa, không phải số liệu khí quyển của NASA; app ghi rõ như vậy. Điều kiện đó nằm trong vùng các test FLEX của kết quả 0 trên 17, nên mô hình coi là trong miền dữ liệu.
 Về chất dập lửa: CO₂ là chất dập dùng ở phía Mỹ của ISS và có thể kém hiệu quả hơn mong đợi trong vi trọng lực [ev-16]; trong FLEX, heptan trong heli cháy nhanh hơn trong CO₂ (K trung vị 0,65 so với 0,50 mm²/s) [ev-23]."
 
 ## 5. Presentation — demo trực tiếp (4:50–6:00) — mở app
 
 1. (15 s) Bấm **ISS preset**, Methanol: "Không khí ISS, giọt 3 mm: 72 % tự tắt, khoảng 62–81 % [model]." Chuyển sang Heptane: "43 %."
-2. (20 s) Bấm **Exploration atmosphere**: "Nút này là minh họa, không phải con số của NASA — app ghi 'illustrative, needs a cited source' và vùng này bị tô xám, tức ngoại suy." Chỉ vào ô cảnh báo Extrapolation.
+2. (20 s) Kéo O₂ lên **40 %** và áp suất lên **3 atm**: "Vùng xám xuất hiện, cảnh báo Extrapolation — không có thí nghiệm NASA nào gần đây, con số không có dữ liệu đỡ."
 3. (15 s) Hộp **Key findings** ở đầu tab 1 (mặc định đã mở): chỉ vào dòng về 17 test.
 4. (20 s) Tab **Evidence Ranking**, mở thẻ ev-02: "điều kiện, con số, trích dẫn."
-5. (20 s) Tab **Ask the Data**, bấm câu mẫu "How did fabric burn in microgravity compared with normal gravity?" — chỉ vào mã `[ev-01]`. *Nếu tab báo 'off' vì không có API key: nói thẳng "tab này cần khóa API; hai tab còn lại không cần" và bỏ bước này.*
+5. (20 s) Tab **Ask the Data**, bấm câu mẫu "Do CO2 and helium help put droplet flames out?" — chỉ vào các mã `[ev-23]`, `[in-04]`, `[ev-05]`, `[ev-16]` và phần Caveats (đã chạy thật với GLM). *Nếu tab báo 'off' vì không có API key: nói thẳng "tab này cần khóa API; hai tab còn lại không cần" và bỏ bước này.*
 
 Dự phòng: 3 ảnh chụp trong `app/screenshots/` (slide 5) phòng khi mạng hỏng.
 
@@ -81,7 +81,7 @@ AUC đo khả năng xếp một ngọn lửa tự tắt cao hơn một ngọn kh
 Không hẳn. "Không tự tắt" ở đây gồm cả test kết thúc bằng Disruption: 15 trong 17 là Disruption, 2 metanol cháy hết giọt [in-02]. Đó là quan sát về giọt lỏng ở 17 test, một dải áp suất, chỉ nitơ — không nói gì trực tiếp về vật liệu rắn hay về một căn cứ thật. Em dùng giọt lỏng vì đó là bảng duy nhất đủ nhãn để học máy (274 hàng); giá trị của nó là chỉ ra xu hướng (oxy cao → hết tự tắt, [in-01]) và chỉ rõ vùng chưa có dữ liệu.
 
 **4. 81 % lưới là ngoại suy — app còn ích gì? Nút "Exploration atmosphere" lấy số ở đâu?**
-Chính con số 81 % là một kết quả: phần lớn không gian điều kiện của một căn cứ chưa được thử, và app không giấu mà tô xám. Trong vùng dữ liệu (19 %), người dùng thấy xu hướng kèm khoảng tin cậy. Nút Exploration là minh họa, chưa có nguồn — app ghi rõ và em không trình bày nó như số liệu NASA; em chỉ nói định tính "oxy cao, áp suất thấp" theo NASA [ev-14].
+Chính con số 81 % là một kết quả: phần lớn không gian điều kiện của một căn cứ chưa được thử, và app không giấu mà tô xám. Trong vùng dữ liệu (19 %), người dùng thấy xu hướng kèm khoảng tin cậy. Nút Exploration (34 % oxy, 0,7 atm) là minh họa — app ghi rõ và em không trình bày nó như số liệu khí quyển của NASA; điều kiện đó trùng với các test FLEX của [in-02], còn về khí quyển thám hiểm em chỉ nói định tính "oxy cao, áp suất thấp" theo NASA [ev-14].
 
 **5. LLM có bịa không?**
 Có thể sai, nên em hạn chế nó: nhiệt độ 0, chỉ nhận danh sách bằng chứng, các insight và đầu ra mô hình, phải gắn mã sau mỗi câu; app báo nếu mã không tồn tại hoặc câu trả lời không có nguồn, và dán nhãn "AI summary, check the cited sources". Nguồn sự thật là tab Evidence. Tab này tắt khi không có API key.
@@ -96,4 +96,6 @@ Nhà thiết kế khí quyển, sinh viên, người làm an toàn nhiệm vụ 
 Claude (qua Claude Code) giúp viết mã, trích 27 phát hiện từ file và trang NASA, và soạn bài. Mỗi phát hiện có trích dẫn và cờ verified để kiểm tra lại; sáu insight tính bằng script `scripts/make_insights.py` từ dữ liệu FLEX; mỗi số trong bài nộp gắn với mã bằng chứng, insight hoặc đầu ra `flame_model.py`. **[ĐIỀN: bạn đã tự đối chiếu những mục nào với nguồn — nói đúng mức đó.]** Trong app: mô hình học máy cổ điển và một LLM (z-ai/glm-5.3-flash qua OpenRouter) chỉ ở tab hỏi đáp; Claude không chạy bên trong app.
 
 ---
+**Bonus — "Câu trả lời mẫu nói heli 'không giúp', nhưng metanol/heli tự tắt 7 trên 7?"** → Insight in-04 chỉ nói heli *không làm chậm* quá trình cháy (K metanol/He 0,52 so với 0,48 ở N₂). Đếm tự tắt trong nhóm heli: heptan 5/11, metanol 7/7, nhưng so sánh thô, phân suất khí và O₂ khác nhau giữa các nhóm [in-04]. Dòng "Short answer" của LLM là bản tóm tắt; nguồn sự thật là các thẻ được trích dẫn bên dưới. Đừng khẳng định heli "vô dụng".
+
 *Bonus:* "Bình bọt trên Mir có dập được lửa không?" → Theo bài NASA, phi hành đoàn dùng ba bình bọt và ngọn lửa cuối cùng tự tắt; em không kết luận bình bọt đã dập được nó [ev-27]. "Apollo 1 có phải vi trọng lực không?" → Không, đó là thử nghiệm mặt đất ở 1 g; nó cho thấy nguy cơ của khí quyển 100 % oxy [ev-26]. "Con số bất ngờ nhất?" → silicone 0,27 mm cháy hết ở 1 g nhưng ≈ 0 ở 0 g [ev-02].

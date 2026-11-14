@@ -16,7 +16,7 @@ One message per slide, big numbers, source in small print.
 - **Hook (two lines, both from NASA pages):**
   - "Apollo 1: a flash fire in a 100 % oxygen cabin." [ev-26]
   - "Mir: a three-foot flame that burned for several minutes." [ev-27]
-- Footer: Zinnn · NASA Space Apps Challenge 2026 · Hà Nội · repo link
+- Footer: My team is kinda nameless (Zinnn) · NASA Space Apps Challenge 2026 · Hà Nội · repo link
 - No astronaut names. No flame illustration that implies data.
 
 ## Slide 2 — Two fires, one knowledge gap
@@ -61,9 +61,9 @@ One message per slide, big numbers, source in small print.
 
 - **Headline:** See the risk, see where the data stops, ask the data
 - Screenshot 1 `01_habitat_fire_risk.png`: heatmap with grey extrapolation veil, ISS star, "Inside the range of NASA FLEX tests".
-  - It also shows the "Exploration atmosphere (34 % O₂, 0.6 atm)" button. **Add a caption: "illustrative preset, not a NASA figure"** — the app itself says "illustrative, needs a cited source".
+  - If the "Exploration atmosphere (34 % O₂, 0.7 atm)" button is visible, **caption it: "illustrative preset, not a NASA figure; its conditions match the FLEX tests in in-02"** — the app itself says "illustrative; matches the elevated-O₂, low-pressure FLEX tests (in-02)".
 - Screenshot 2 `02_evidence_ranking.png`: evidence cards with verified badge.
-- Screenshot 3 `03_ask_the_data.png` shows only the question box and sample questions. For a better slide, run a real question (e.g. "How did fabric burn in microgravity compared with normal gravity?") and capture the answer with its `[ev-…]` citations — only if the key works. Otherwise use it as is and caption "answers must cite ids".
+- Screenshot 3 `03_ask_the_data.png`: a real answer from `z-ai/glm-5.3-flash` to "Do CO2 and helium help put droplet flames out?", with citations `[ev-23]`, `[in-04]`, `[ev-05]`, `[ev-16]`. Caption: "AI summary — every statement cites an id". Do not crop out the caveats.
 - Caption (ISS air, 3 mm droplet) [model]: methanol 72 % self-extinction (62–81 %); heptane 43 % (32–55 %).
 
 ## Slide 6 — Honest limits (this slide is a feature)
@@ -71,7 +71,7 @@ One message per slide, big numbers, source in small print.
 - **Headline:** What this does *not* do
 - Liquid fuel droplets only — no fabrics, plastics or real habitat fires
 - **81 % of the default grid is extrapolation** (19 % inside NASA data) — greyed out, never hidden [model]
-- The exploration preset is an illustration: its values have no NASA source
+- The exploration preset is an illustration: its values (34 % O₂, 0.7 atm) are not a NASA figure, though they sit inside the FLEX tests of in-02
 - Microgravity suppressant values (CO₂, N₂, He) are partly simulation [ev-05]
 - Every number links to a PSI file, a NASA document, a computed insight or the model's printed output
 - Visual: grey-veiled heatmap, enlarged.
@@ -93,3 +93,4 @@ One message per slide, big numbers, source in small print.
 3. Mir wording: "the flame finally extinguished itself" **after** the crew used foam extinguishers — never "the extinguishers put it out".
 4. No astronaut names; Apollo 1 labelled ground test.
 5. Slide 4 caveat box present; exploration preset values never shown as NASA data.
+6. Slide 5 screenshots are the current ones from `main` (01 re-shot with the 0.7 atm preset; 03 real GLM answer).

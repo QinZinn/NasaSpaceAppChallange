@@ -49,9 +49,9 @@ Re-run before submitting; if workstream M changes the model, update all files.
 
 | Item | Status |
 |---|---|
-| Preset 34 % O₂, 0.6 atm, N₂ in `app/app.py` (`EXPLORATION`, `source: None`) | ✅ the app labels it "illustrative, needs a cited source" |
-| Our text | ✅ describes it only as "high O₂, low pressure" (ev-14) and as illustrative; its values appear nowhere in the submission text or pitch. The screenshot `01_habitat_fire_risk.png` shows the button with 34 % / 0.6 atm → caption it "illustrative, not a NASA figure" (slide 5) |
-| Model status of the preset | ✅ `predict('Methanol', 0.34, 0.6)` → `in_domain=False` (extrapolation) |
+| Preset 34 % O₂, 0.7 atm, N₂ in `app/app.py` (`EXPLORATION`, `source: None`; changed from 0.6 atm by workstream A) | ✅ the app labels it "illustrative; matches the elevated-O₂, low-pressure FLEX tests (in-02)" |
+| Our text | ✅ calls it an illustration, not a NASA exploration-atmosphere figure; describes the atmosphere type only qualitatively (ev-14). The values 34 % / 0.7 atm are quoted only as "inside the FLEX conditions of in-02". |
+| Model status of the preset | ✅ `predict()` at 34 % O₂, 0.7 atm → `in_domain=True`; methanol 1.6 %, heptane 0.4 % self-extinction (3 mm droplet) [model]. Extrapolation demo now = O₂ 40 %, 3 atm → `in_domain=False` ✅ |
 
 ## Still open ⚠️
 
@@ -59,10 +59,12 @@ Re-run before submitting; if workstream M changes the model, update all files.
 |---|---|
 | Character limits of the 8 form fields | Unknown; check on the form and trim `submission.md`. |
 | Repo public? Which branch to link? App URL? Demo URL? | Fill `submission.md` §3–4. |
-| LLM in the demo | ✅ user states `z-ai/glm-5.3-flash` via OpenRouter. ⚠️ `app/app.py` still defaults to `anthropic/claude-sonnet-4.5`: run with `FLAME_LLM_MODEL=z-ai/glm-5.3-flash` (or ask workstream A to change the default), otherwise the app caption and the submission will disagree. Does the judges' copy have `OPENROUTER_API_KEY`? |
+| LLM in the demo | ✅ `z-ai/glm-5.3-flash` is now the app default (`app/app.py`, 15 Nov); user ran it for real: full answer citing ev-23, in-04, ev-05, ev-16 (screenshot 03 on `main` is that run). ⚠️ Does the judges' copy have `OPENROUTER_API_KEY`? |
 | How much of the evidence you checked yourself | Fill the `[CẦN KIỂM TRA]` in §6 and pitch Q8. |
 | PSI licence wording / PSI URL | Check on the PSI site; add URL to references. |
-| Team name as registered | Fill in. |
-| Slide 5 screenshot 3 shows no answer | Re-capture with a real answer + citations if the API key works. |
 
 Resolved: pypdf removed from References (no workstream B confirmation; nothing in the repo imports it — it is still listed in `pyproject.toml`, which is not ours to edit). Apollo 1 / Mir filled from ev-26 / ev-27.
+
+Resolved 15 Nov: team name = "My team is kinda nameless" (as given by the user); LLM default; screenshot 03; preset 0.7 atm.
+
+**Watch-out on the sample answer:** the GLM "Short answer: CO₂ helps; helium does not" is stronger than in-04 supports for self-extinction (methanol/He 7 of 7, heptane/He 5 of 11; raw, uncontrolled). The cited cards are correct; see the Bonus Q in `pitch_5min.md`.
