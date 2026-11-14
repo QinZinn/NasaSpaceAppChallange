@@ -3,7 +3,9 @@
 Challenge: *Flame in Freefall: AI-Powered Fire Safety Insights from Microgravity Combustion Data*.
 Build an interactive, AI-powered dashboard that summarizes, ranks and interprets NASA microgravity
 combustion results to deliver fire-safety insights for Moon and Mars missions.
-**Submission closes 15 Nov 2026, 23:59 (Asia/Ho_Chi_Minh).** Working and honest beats pretty.
+**Submit by Sun 15 Nov 2026, 11:00 (Asia/Ho_Chi_Minh)** to be judged for the Hà Nội awards (NASA's global
+cutoff is 23:59). Judging is live, 11:00-15:00: 15 minutes per team. Demo = max 7 slides or a 30 s video; the
+submission is in English. Working and honest beats pretty.
 
 Solo participant; several Claude sessions work on this repo **in parallel**. Read all of this first.
 
@@ -64,6 +66,10 @@ evaluate() -> dict   # day-grouped CV metrics; use these numbers in the pitch, n
 - `in_domain=False` = extrapolation beyond NASA data (~80% of the default grid). UI must grey it out.
 - The model covers **liquid fuel droplets only** (FLEX). Solids (fabric, plastic) are evidence cards, not model output.
 
+### `insights/insights.json` (workstream M)
+A JSON list of `{id, statement, numbers, basis}` with ids `in-01`…; regenerate with
+`uv run scripts/make_insights.py`. Trends from FLEX data and the model; cite them by id.
+
 ### `evidence/evidence.json` (workstream B)
 A JSON list; each item:
 ```json
@@ -73,7 +79,7 @@ A JSON list; each item:
  "topic": "solid_flame_spread|extinction|suppressant|oxygen_limit|smoke",
  "importance": 1, "citation": "document title, page X", "verified": true}
 ```
-`importance` 1–5 = relevance to fire safety in Moon/Mars habitats. Never invent: an unverifiable
+`importance` 1–5 (5 = most relevant) = relevance to fire safety in Moon/Mars habitats. Never invent: an unverifiable
 number stays empty with `"verified": false`.
 
 ## Honesty rules (all workstreams)
