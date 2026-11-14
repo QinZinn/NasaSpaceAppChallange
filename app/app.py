@@ -6,7 +6,7 @@ Tabs:
   1. Habitat Fire Risk  - sliders + heatmap from flame_model.risk_grid (liquid droplets only)
   2. Evidence Ranking   - evidence/evidence.json, or app/mocks/evidence_mock.json until it exists
   3. Ask the Data       - LLM answers only from the evidence list and model output, citing ids.
-                          Needs ANTHROPIC_API_KEY (env or .streamlit/secrets.toml); off otherwise.
+                          Needs OPENROUTER_API_KEY (env or .streamlit/secrets.toml); off otherwise.
 """
 from __future__ import annotations
 
@@ -32,8 +32,9 @@ FLEX_PATH = fm.DATA_PATH
 # ISS cabin atmosphere: sea-level-like air, 21% O2 in N2 at 1 atm.
 ISS = {"x_o2": 0.21, "p_atm": 1.0, "diluent": "N2", "x_diluent": 0.0}
 
-LLM_MODEL = os.environ.get("FLAME_LLM_MODEL", "claude-opus-5-5")
-LLM_URL = os.environ.get("ANTHROPIC_BASE_URL", "https://api.anthropic.com").rstrip("/") + "/v1/messages"
+# OpenRouter (OpenAI-compatible chat completions). Any model id from openrouter.ai/models works.
+LLM_MODEL = os.environ.get("FLAME_LLM_MODEL", "anthropic/claude-sonnet-4.5")
+LLM_URL = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1").rstrip("/") + "/chat/completions"
 
 TOPIC_LABELS = {
     "solid_flame_spread": "Solid flame spread",
@@ -90,10 +91,10 @@ def load_evidence(_mtime_real: float, _mtime_mock: float) -> tuple[list[dict], b
 
 
 def get_api_key() -> str | None:
-    key = os.environ.get("ANTHROPIC_API_KEY")
+    key = os.environ.get("OPENROUTER_API_KEY")
     if not key:
         try:
-            key = st.secrets.get("ANTHROPIC_API_KEY")
+            key = st.secrets.get("OPENROUTER_API_KEY")
         except Exception:  # no secrets.toml
             key = None
     return key or None
@@ -325,9 +326,11 @@ def ask_llm(question: str, key: str) -> str:
                + "\n</model>\n</context>")
     r = requests.post(
         LLM_URL,
-        headers={"x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json"},
-        json={"model": LLM_MODEL, "max_tokens": 1024, "system": SYSTEM_PROMPT,
-              "messages": [{"role": "user", "content": context + "\n\nQuestion: " + question}]},
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json",
+                 "X-Title": "Flame in Freefall"},
+        json={"model": LLM_MODEL, "max_tokens": 1024, "temperature": 0,
+              "messages": [{"role": "system", "content": SYSTEM_PROMPT},
+                           {"role": "user", "content": context + "\n\nQuestion: " + question}]},
         timeout=90,
     )
     if r.status_code != 200:
@@ -336,7 +339,14 @@ def ask_llm(question: str, key: str) -> str:
         except ValueError:
             msg = r.text[:300]
         raise RuntimeError(f"LLM request failed (HTTP {r.status_code}): {msg}")
-    return "".join(b.get("text", "") for b in r.json().get("content", []) if b.get("type") == "text")
+    body = r.json()
+    if body.get("error"):  # OpenRouter can return provider errors with HTTP 200
+        raise RuntimeError(f"LLM request failed: {body['error'].get('message', body['error'])}")
+    choices = body.get("choices") or []
+    text = (choices[0].get("message", {}).get("content") or "") if choices else ""
+    if not text.strip():
+        raise RuntimeError("LLM returned an empty answer; try again or pick another model.")
+    return text
 
 
 def cited_ids(text: str) -> list[str]:
@@ -351,7 +361,7 @@ def cited_ids(text: str) -> list[str]:
 
 with tab_ask:
     if not api_key:
-        st.info("**Ask the Data is off: no API key found.** Set `ANTHROPIC_API_KEY` in the environment "
+        st.info("**Ask the Data is off: no API key found.** Set `OPENROUTER_API_KEY` in the environment "
                 "(or in `.streamlit/secrets.toml`) and restart the app to enable it. "
                 "The other two tabs work without it.")
     else:
