@@ -1,10 +1,10 @@
-"""Flame in Freefall dashboard (workstream A).
+"""Flame in Freefall dashboard.
 
 Run from the repo root:  uv run streamlit run app/app.py
 
 Tabs:
   1. Habitat Fire Risk  - sliders + heatmap from flame_model.risk_grid (liquid droplets only)
-  2. Evidence Ranking   - evidence/evidence.json, or app/mocks/evidence_mock.json until it exists
+  2. Evidence Ranking   - ranked, cited NASA findings from evidence/evidence.json
   3. Ask the Data       - LLM answers only from the evidence list, model output and (when present)
                           insights/insights.json, citing ids.
                           Needs OPENROUTER_API_KEY (env or .streamlit/secrets.toml); off otherwise.
@@ -98,7 +98,7 @@ def _mtime(p: Path) -> float:
 
 @st.cache_data(show_spinner=False)
 def load_evidence(mtime_real: float, mtime_mock: float) -> tuple[list[dict], bool, str]:
-    """Returns (items, is_mock, note). Falls back to the mock when the real file is unusable."""
+    """Returns (items, is_mock, note). Uses demo placeholders only if a mock file is present; else empty."""
     note = ""
     if EVIDENCE_PATH.exists():
         try:
@@ -111,12 +111,14 @@ def load_evidence(mtime_real: float, mtime_mock: float) -> tuple[list[dict], boo
             note = f"evidence/evidence.json could not be parsed ({e})."
     else:
         note = "evidence/evidence.json does not exist yet."
-    return json.loads(MOCK_PATH.read_text(encoding="utf-8")), True, note
+    if MOCK_PATH.exists():
+        return json.loads(MOCK_PATH.read_text(encoding="utf-8")), True, note
+    return [], False, note
 
 
 @st.cache_data(show_spinner=False)
 def load_insights(mtime: float) -> list[dict]:
-    """insights/insights.json from workstream M: [{id, statement, numbers, basis}]. Empty if absent or bad."""
+    """insights/insights.json: [{id, statement, numbers, basis}]. Empty if absent or bad."""
     try:
         items = json.loads(INSIGHTS_PATH.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError, UnicodeDecodeError):
@@ -321,6 +323,8 @@ with tab_ev:
     if evidence_is_mock:
         st.error(f"**DEMO / MOCK DATA.** {evidence_note} Showing placeholders from "
                  "`app/mocks/evidence_mock.json`: these are not NASA findings and contain no real numbers.")
+    elif not evidence:
+        st.error(f"No evidence to show. {evidence_note}")
     st.caption("Findings extracted from NASA documents, ranked by relevance to fire safety in Moon/Mars "
                "habitats (importance 5 = most relevant). Solid-material results live here; they are evidence, "
                "not model output.")
