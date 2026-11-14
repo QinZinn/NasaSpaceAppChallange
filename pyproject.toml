@@ -1,0 +1,13 @@
+[project]
+name = "flame-in-freefall"
+version = "0.1.0"
+description = "NASA Space Apps 2026 - Flame in Freefall: AI-powered fire safety insights from microgravity combustion data"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "streamlit",
+    "plotly",
+    "pypdf",
+]

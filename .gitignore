@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+.streamlit/secrets.toml
+# Large NASA downloads (raw videos, PDFs) stay local; commit only what the app needs.
+data/downloads/
+*.mp4
+*.avi
+*.zip
