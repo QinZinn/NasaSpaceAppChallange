@@ -1,51 +1,88 @@
-# Demo script — Flame in Freefall
+# Project Demo — 7-slide deck (chosen option)
 
-**Limit used here: 30-second video OR 7-slide deck (title and intro slides included), public link, no login,
-English subtitles if not spoken in English.** This is from the official 2021–2025 guides as found via search;
-the 2026 guide could not be fetched → **[CẦN KIỂM TRA]** on spaceappschallenge.org before recording.
-Submit ONE demo format. The deck (Option B) is the safer fallback if the 30 s limit turns out to differ.
-
----
-
-## Option A — 30-second video
-
-Target ≈ 70 words (≈ 2.5 words/s). Record, then trim to ≤ 30.0 s. Burn English subtitles into the video.
-
-| Time | Voice-over | On screen |
-|---|---|---|
-| 0–5 s | "Apollo 1, 1967. Mir, 1997. Fires in sealed spacecraft." | Two archive-style captions (use NASA public-domain images **[CẦN KIỂM TRA: image credit/licence]**) or plain text cards |
-| 5–15 s | "NASA's SAFFIRE-II burned the same materials in microgravity and on Earth. Silicone: fully consumed at 1 g, almost nothing at 0 g. Cotton-fiberglass: all 29 centimetres burned in space." | Table crop of the 0 g vs 1 g result (from PSI-99), silicone row then SIBAL row highlighted |
-| 15–25 s | "So Earth tests can mislead in both directions. Our dashboard turns 274 ISS droplet-flame tests into extinction-risk maps with uncertainty, and greys out anything beyond NASA's data." | Screen recording of dashboard: move O₂ slider → risk map changes; grey out-of-domain area visible |
-| 25–30 s | "Flame in Freefall: honest fire-safety insight for the Moon and Mars." | Title card + repo link |
-
-Recording checklist
-- Screen capture only the real app. No mock-up unless labelled "demo data".
-- Show greyed-out extrapolation region on screen — it is the honesty point.
-- Do not state accuracy in the video; put numbers in the description (30 s is too short to qualify them).
-- Dashboard steps depend on the final app **[CẦN KIỂM TRA with workstream A: slider names, default fuel]**.
+Rules (confirmed by Hà Nội organisers): **max 7 slides including the cover**, public link, **English only**.
+Build in Google Slides / Canva / PowerPoint and export a public link; test it in a private window.
+Tag in brackets = source: `[ev-NN]` evidence id, `[model]` = `uv run flame_model.py` output (14 Nov 2026).
+Keep text light: one message per slide, numbers big, source in small print at the bottom of each slide.
 
 ---
 
-## Option B — 7-slide deck (including title and intro)
+## Slide 1 — Cover
 
-| # | Slide | Content |
-|---|---|---|
-| 1 | Title + hook | "Flame in Freefall" — Apollo 1 (1967), Mir (1997): fire in sealed spacecraft **[CẦN KIỂM TRA facts, see fact_check.md]** |
-| 2 | The gap | Moon/Mars habitats are sealed; our fire intuition and standards come from 1 g |
-| 3 | SAFFIRE-II: 0 g ≠ 1 g | Table: silicone ≈ 0 cm at 0 g vs complete at 1 g; SIBAL 29 cm at 0 g; PMMA anchored flame. Source: PSI-99 |
-| 4 | Data & model | FLEX PSI-69, 274 ISS tests; logistic + ridge bootstrap ensembles; day-grouped CV: ROC-AUC 0.881, balanced acc 0.762, K R² 0.71 (`evaluate()`) |
-| 5 | The dashboard | Screenshots: risk map with uncertainty band; evidence cards |
-| 6 | Honest limits | Droplets only; 19 % of default grid in-domain, ~81 % greyed extrapolation; evidence cards ≠ model output |
-| 7 | Impact + links | Who uses it, next steps, repo + app links, NASA data list, AI tools disclosure |
+- **Title:** Flame in Freefall
+- **Subtitle:** Honest, AI-assisted fire-safety insights from NASA microgravity combustion data — for Moon & Mars habitats
+- **Hook line:** "Apollo 1. Mir. Two spacecraft fires."
+  **[ĐIỀN]** one sentence from the NASA pages on Apollo 1 and Mir once the user pastes them. Until then keep only the hook line above: no dates, no causes, no casualty numbers.
+- Footer: Zinnn · NASA Space Apps Challenge 2026 · Hà Nội · repo link
+- Visual: dark background, a rounded teardrop flame (in 0 g a flame is spherical, on Earth it is a teardrop — only draw this if you label it "illustration").
 
-Speaker notes (if recording a voice-over for the deck instead of reading): one sentence per slide, taken from the table above.
+## Slide 2 — The gap: we test fire at 1 g, we will live at 0 g and 1/6 g
+
+- **Headline:** Spacecraft fire safety still leans on Earth standards
+- Bullets:
+  - Before Saffire, microgravity fire tests used samples ≤ 10 cm; design relied on terrestrial fire standards — "an inherent risk" that grows as missions travel farther from Earth [ev-12]
+  - Saffire-I to -III covered roughly ISS-like air, **not** the elevated-O₂, lower-pressure atmospheres planned for exploration habitats [ev-14]
+  - Evidence base is small: 2 large + 9 smaller samples [ev-19]
+- Source line: Schoren, Ruff & Urban, NTRS 20170001636
+
+## Slide 3 — SAFFIRE-II: same test, different gravity, different answer
+
+- **Headline:** Gravity changes the result — in both directions
+- Table (PSI-99, 5 × 29 cm samples, 20 cm/s flow, ~21.5–22.1 % O₂):
+
+  | Sample | 0 g | 1 g |
+  |---|---|---|
+  | Silicone 0.27 mm | ≈ 0 cm burned | burned completely |
+  | Cotton-fiberglass | **all 29 cm**, 2.1 & 2.6 mm/s | burned completely |
+  | Thick PMMA | ≈ 10 cm, flame anchored | burned completely |
+
+- Callout: "It burns on Earth, not in space — and the fabric burns end-to-end in space." [ev-01, ev-02, ev-06]
+- Small print: one SIBAL sample was planned at 30 cm/s but logged at 20 cm/s [ev-01]. Silicone 1.03 mm did not burn at either gravity [ev-02].
+
+## Slide 4 — Data and model
+
+- **Headline:** 274 real ISS flames → an uncertainty-aware risk model
+- Left: NASA FLEX (PSI-69), 274 droplet tests (methanol 157, heptane 117), 2009–2011: 186 extinguished, 27 burned out, 61 disrupted [ev-22]
+- Middle: logistic + ridge regression, 200-bootstrap ensembles, 90 % intervals
+- Right (big numbers, from 5-fold CV grouped by test day [model]):
+  - **0.881** ROC-AUC (self-extinction)
+  - **0.762** balanced accuracy
+  - **0.71** R² (burning-rate constant K)
+- Small print: 261 tests with complete inputs for extinction, 256 for K; liquid droplets only.
+
+## Slide 5 — The dashboard (3 screenshots from the real app)
+
+- **Headline:** See the risk, see where the data stops, ask the data
+- Screenshot 1: *Habitat Fire Risk* heatmap with grey extrapolation veil and ISS star marker
+- Screenshot 2: *Evidence Ranking* cards (ev-02 visible, "✔ verified")
+- Screenshot 3: *Ask the Data* answer with `[ev-…]` citations
+- Caption example (ISS air, 3 mm droplet) [model]: methanol 72 % self-extinction (62–81 %), heptane 43 % (32–55 %)
+- Label screenshots with their real conditions; never mock-ups. If "Ask the Data" is off for lack of a key, omit screenshot 3 and say so.
+
+## Slide 6 — Honest limits (this slide is a feature)
+
+- **Headline:** What this does *not* do
+- Bullets:
+  - Liquid fuel droplets only — no fabrics, plastics or real habitat fires
+  - **81 % of the default grid is extrapolation** (19 % inside NASA data) — greyed out, never hidden [model]
+  - Suppressant results for microgravity are partly simulation [ev-05]
+  - Every number links to a PSI file, a NASA document or the model's printed output
+- Visual: the grey-veiled heatmap, enlarged.
+
+## Slide 7 — Impact, AI, data, links
+
+- **Headline:** From open NASA data to habitat design questions
+- Impact: lets designers/students explore how O₂, pressure and CO₂/He/N₂ move a flame toward or away from extinction [ev-15, ev-16, ev-23]; exploratory support, not certification
+- Next: FLEX-2 outcomes, a solid-fuel model from SAFFIRE data, Moon/Mars-like atmospheres as data arrives
+- **Use of AI:** Claude (Anthropic) via Claude Code → code, evidence extraction, drafting; scikit-learn model; LLM via OpenRouter in "Ask the Data" (answers only from cited evidence)
+- **NASA data:** PSI-25, 26, 68, 69, 98, 99, 100
+- Links: GitHub repo · app · submission page (QR optional)
 
 ---
 
-## Live Q&A cheat-sheet (if a judge asks)
-
-- *"Does it predict real habitat fires?"* No. Liquid droplets in FLEX conditions only; solids are cited evidence.
-- *"How accurate?"* Cross-validated by test day: ROC-AUC 0.881, balanced accuracy 0.762 for extinction; R² 0.71 for burning rate K. Source: `uv run flame_model.py`.
-- *"What is in-domain?"* Within the range/neighbourhood of real FLEX tests; 19 % of our default 754-point grid.
-- *"Why SAFFIRE-II?"* It's the one NASA table that directly compares 0 g and 1 g on the same materials.
-- *"Which AI?"* Claude Code for coding/drafting; scikit-learn for the model. See submission.md §5.
+## Checks before exporting
+1. English only, no Vietnamese text left on slides.
+2. Exactly 7 slides; link opens without login in a private window.
+3. Numbers on slides match `submission.md` and `fact_check.md`; re-run `uv run flame_model.py` and compare.
+4. Screenshots come from the current `main` build of the app.
+5. Slide 1: add Apollo 1 / Mir details only from the NASA pages the user pastes.
