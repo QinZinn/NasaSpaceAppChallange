@@ -5,7 +5,8 @@ Run from the repo root:  uv run streamlit run app/app.py
 Tabs:
   1. Habitat Fire Risk  - sliders + heatmap from flame_model.risk_grid (liquid droplets only)
   2. Evidence Ranking   - evidence/evidence.json, or app/mocks/evidence_mock.json until it exists
-  3. Ask the Data       - LLM answers only from the evidence list and model output, citing ids.
+  3. Ask the Data       - LLM answers only from the evidence list, model output and (when present)
+                          insights/insights.json, citing ids.
                           Needs OPENROUTER_API_KEY (env or .streamlit/secrets.toml); off otherwise.
 """
 from __future__ import annotations
@@ -27,10 +28,24 @@ import flame_model as fm  # noqa: E402
 
 EVIDENCE_PATH = ROOT / "evidence" / "evidence.json"
 MOCK_PATH = Path(__file__).resolve().parent / "mocks" / "evidence_mock.json"
+INSIGHTS_PATH = Path(os.environ.get("FLAME_INSIGHTS", ROOT / "insights" / "insights.json"))
 FLEX_PATH = fm.DATA_PATH
 
 # ISS cabin atmosphere: sea-level-like air, 21% O2 in N2 at 1 atm.
 ISS = {"x_o2": 0.21, "p_atm": 1.0, "diluent": "N2", "x_diluent": 0.0}
+
+# Second preset: a reduced-pressure, oxygen-enriched cabin of the kind discussed for exploration
+# habitats. The values are ILLUSTRATIVE. Once a document is cited for them, set "source" to that
+# citation and the "illustrative" labels in the UI disappear.
+EXPLORATION = {"x_o2": 0.34, "p_atm": 0.6, "diluent": "N2", "x_diluent": 0.0, "source": None}
+EXPLORATION_NOTE = EXPLORATION["source"] or "illustrative, needs a cited source"
+
+SAMPLE_QUESTIONS = [
+    "What happens to a burning droplet when oxygen goes up?",
+    "How did fabric burn in microgravity compared with normal gravity?",
+    "Do CO2 and helium help put droplet flames out?",
+    "How risky is the atmosphere selected in the sidebar?",
+]
 
 # OpenRouter (OpenAI-compatible chat completions). Any model id from openrouter.ai/models works.
 LLM_MODEL = os.environ.get("FLAME_LLM_MODEL", "anthropic/claude-sonnet-4.5")
@@ -45,6 +60,14 @@ TOPIC_LABELS = {
 }
 
 st.set_page_config(page_title="Flame in Freefall", page_icon="🔥", layout="wide")
+# Tighter top spacing so the heatmap fits on a 1366x768 laptop screen.
+st.markdown("<style>.block-container{padding-top:3.2rem;padding-bottom:2rem}"
+            "h1{font-size:1.9rem !important;padding:0 0 .2rem 0 !important}</style>", unsafe_allow_html=True)
+
+
+def esc(text) -> str:
+    """Escape markdown/LaTeX control characters in data text (e.g. '~22% O2 ... ~1 atm' is not strikethrough)."""
+    return re.sub(r"([\\`*_~$\[\]<>#|])", r"\\\1", str(text))
 
 
 # ---------------------------------------------------------------- data access
@@ -73,7 +96,7 @@ def _mtime(p: Path) -> float:
 
 
 @st.cache_data(show_spinner=False)
-def load_evidence(_mtime_real: float, _mtime_mock: float) -> tuple[list[dict], bool, str]:
+def load_evidence(mtime_real: float, mtime_mock: float) -> tuple[list[dict], bool, str]:
     """Returns (items, is_mock, note). Falls back to the mock when the real file is unusable."""
     note = ""
     if EVIDENCE_PATH.exists():
@@ -90,6 +113,18 @@ def load_evidence(_mtime_real: float, _mtime_mock: float) -> tuple[list[dict], b
     return json.loads(MOCK_PATH.read_text(encoding="utf-8")), True, note
 
 
+@st.cache_data(show_spinner=False)
+def load_insights(mtime: float) -> list[dict]:
+    """insights/insights.json from workstream M: [{id, statement, numbers, basis}]. Empty if absent or bad."""
+    try:
+        items = json.loads(INSIGHTS_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError):
+        return []
+    if not isinstance(items, list):
+        return []
+    return [i for i in items if isinstance(i, dict) and i.get("id") and i.get("statement")]
+
+
 def get_api_key() -> str | None:
     key = os.environ.get("OPENROUTER_API_KEY")
     if not key:
@@ -101,9 +136,9 @@ def get_api_key() -> str | None:
 
 
 # ---------------------------------------------------------------- sidebar
-def apply_iss():
-    for k, v in ISS.items():
-        st.session_state[k] = v
+def apply_preset(preset: dict):
+    for k in ("x_o2", "p_atm", "diluent", "x_diluent"):
+        st.session_state[k] = preset[k]
 
 
 st.session_state.setdefault("x_o2", ISS["x_o2"])
@@ -111,7 +146,10 @@ st.session_state.setdefault("p_atm", ISS["p_atm"])
 
 with st.sidebar:
     st.header("Atmosphere")
-    st.button("ISS preset (21% O₂, 1 atm, N₂)", on_click=apply_iss, width="stretch")
+    st.button("ISS preset (21% O₂, 1 atm, N₂)", on_click=apply_preset, args=(ISS,), width="stretch")
+    st.button(f"Exploration atmosphere ({EXPLORATION['x_o2']:.0%} O₂, {EXPLORATION['p_atm']:g} atm, N₂)",
+              on_click=apply_preset, args=(EXPLORATION,), width="stretch")
+    st.caption(f"Exploration preset: {EXPLORATION_NOTE}.")
     fuel = st.radio("Fuel droplet", fm.FUELS, horizontal=True, key="fuel")
     x_o2 = st.slider("O₂ mole fraction", 0.12, 0.40, step=0.01, key="x_o2")
     p_atm = st.slider("Pressure (atm)", 0.5, 3.0, step=0.1, key="p_atm")
@@ -132,6 +170,7 @@ st.title("🔥 Flame in Freefall")
 st.caption("Fire-safety insights from NASA microgravity combustion data (PSI, CC0) for Moon and Mars habitats.")
 
 evidence, evidence_is_mock, evidence_note = load_evidence(_mtime(EVIDENCE_PATH), _mtime(MOCK_PATH))
+insights = load_insights(_mtime(INSIGHTS_PATH))
 api_key = get_api_key()
 
 tab_risk, tab_ev, tab_ask = st.tabs(
@@ -140,18 +179,33 @@ tab_risk, tab_ev, tab_ask = st.tabs(
 
 # ---------------------------------------------------------------- tab 1: risk
 METRICS = {
-    "Self-extinction probability (higher = safer)": ("p_extinction", "P(extinction)", "Viridis", [0, 1]),
-    "Burning-rate constant K, mm²/s (higher = burns faster)": ("k_mm2_s", "K (mm²/s)", "Inferno", None),
+    "Self-extinction probability": ("p_extinction", "P(extinction)", "Viridis", [0, 1]),
+    "Burning rate K (mm²/s)": ("k_mm2_s", "K (mm²/s)", "Inferno", None),
 }
 
+def insight_line(i: dict) -> str:
+    line = f"`{i['id']}` {esc(i['statement'])}"
+    if i.get("numbers"):
+        line += f" **{esc(i['numbers'])}**"
+    if i.get("basis"):
+        line += f"  \n:gray[Basis: {esc(i['basis'])}]"
+    return line
+
+
 with tab_risk:
+    if insights:
+        with st.expander(f"**Key findings** from the FLEX droplet data ({len(insights)})", expanded=True):
+            st.markdown("\n".join("- " + insight_line(i) for i in insights))
+            st.caption("Liquid fuel droplets in microgravity only; not predictions for solid materials or habitat fires.")
+
     pred = point(fuel, x_o2, p_atm, diluent, x_diluent, d0_mm)
     g = grid(fuel, diluent, x_diluent, d0_mm)
 
-    left, right = st.columns([3, 2], gap="large")
+    left, right = st.columns([1.25, 1], gap="medium")
 
     with left:
-        metric_label = st.radio("Heatmap shows", list(METRICS), horizontal=True, label_visibility="collapsed")
+        metric_label = st.radio("Heatmap shows", list(METRICS), horizontal=True, label_visibility="collapsed",
+                                help="Self-extinction: higher is safer. Burning rate K: higher burns faster.")
         col, short, scale, zrange = METRICS[metric_label]
         z = g.pivot(index="p_atm", columns="x_o2", values=col)
         dom = g.pivot(index="p_atm", columns="x_o2", values="in_domain").astype(bool)
@@ -173,7 +227,7 @@ with tab_risk:
         tests = flex_tests()
         tests = tests[(tests["fuel"] == fuel) & (tests["diluent"] == diluent)].dropna(subset=["x_o2", "p_atm"])
         for flag, name, symbol in [(1, "FLEX test: self-extinguished", "circle"),
-                                   (0, "FLEX test: did not self-extinguish", "x")]:
+                                   (0, "FLEX test: kept burning", "x")]:
             t = tests[tests["extinguished"] == flag]
             fig.add_trace(go.Scatter(
                 x=t["x_o2"], y=t["p_atm"], mode="markers", name=name,
@@ -187,20 +241,26 @@ with tab_risk:
             hovertemplate="ISS cabin: 21% O₂, 1 atm<extra></extra>",
         ))
         fig.add_trace(go.Scatter(
+            x=[EXPLORATION["x_o2"]], y=[EXPLORATION["p_atm"]], mode="markers",
+            name="Exploration" + ("" if EXPLORATION["source"] else " (illustrative)"),
+            marker=dict(symbol="star-triangle-up", size=14, color="#ffb000", line=dict(color="black", width=1)),
+            hovertemplate=f"Exploration atmosphere preset<br>{EXPLORATION_NOTE}<extra></extra>",
+        ))
+        fig.add_trace(go.Scatter(
             x=[x_o2], y=[p_atm], mode="markers", name="Selected",
             marker=dict(symbol="diamond", size=14, color="#ff3b30", line=dict(color="white", width=2)),
             hovertemplate="Selected condition<extra></extra>",
         ))
         fig.update_layout(
-            height=520, margin=dict(l=10, r=10, t=10, b=10),
+            height=470, margin=dict(l=10, r=10, t=10, b=10),
             xaxis_title="O₂ mole fraction", yaxis_title="Pressure (atm)",
-            legend=dict(orientation="h", yanchor="bottom", y=1.01, x=0),
+            legend=dict(orientation="h", yanchor="top", y=-0.2, x=0),
         )
         st.plotly_chart(fig, width="stretch")
         st.caption(
             f"Greyed cells = extrapolation beyond NASA data ({1 - g['in_domain'].mean():.0%} of this grid); "
             f"treat them as untested, not as predictions. Markers are the {len(tests)} real FLEX tests "
-            f"with {fuel} in {diluent} (all droplet sizes and {diluent} fractions)."
+            f"with {fuel} in {diluent} (all droplet sizes and {diluent} fractions): ○ self-extinguished, ✕ kept burning."
         )
 
     with right:
@@ -217,12 +277,12 @@ with tab_risk:
                        "The numbers below are not supported by data.")
 
         c1, c2 = st.columns(2)
-        c1.metric("Self-extinction probability", f"{pred['p_extinction']:.0%}",
+        c1.metric("Self-extinction", f"{pred['p_extinction']:.0%}",
                   help="Probability the flame goes out by itself before the droplet is consumed. Higher is safer.")
         c1.caption(f"90% interval {pred['p_low']:.0%} – {pred['p_high']:.0%}")
-        c2.metric("Burning rate K", f"{pred['k_mm2_s']:.2f} mm²/s",
+        c2.metric("K (mm²/s)", f"{pred['k_mm2_s']:.2f}",
                   help="Burning-rate constant from the d² law. Higher burns faster.")
-        c2.caption(f"90% prediction interval {pred['k_low']:.2f} – {pred['k_high']:.2f}")
+        c2.caption(f"90% interval {pred['k_low']:.2f} – {pred['k_high']:.2f}")
 
         st.markdown("**Nearest real tests** (" + pred["source"] + ")")
         st.dataframe(pd.DataFrame(pred["nearest_tests"]), hide_index=True, width="stretch")
@@ -244,14 +304,16 @@ def evidence_card(e: dict):
     with st.container(border=True):
         head, badge = st.columns([5, 1])
         imp = e.get("importance")
-        head.markdown(f"**`{e.get('id')}` · {e.get('investigation', '?')}** ({e.get('source', '?')}) · "
-                      f"{TOPIC_LABELS.get(e.get('topic'), e.get('topic', '?'))} · importance {imp if imp is not None else '?'}/5")
+        head.markdown(f"**`{e.get('id')}` · {esc(e.get('investigation') or '?')}** · "
+                      f"{esc(TOPIC_LABELS.get(e.get('topic'), e.get('topic') or '?'))} · "
+                      f"importance {imp if imp is not None else '?'}/5  \n"
+                      f":gray[Source: {esc(e.get('source') or 'not given')}]")
         badge.markdown(":green[✔ verified]" if e.get("verified") else ":orange[⚠ unverified]")
-        st.markdown(e.get("claim") or "_no claim text_")
-        bits = [f"**{k.capitalize()}:** {e[k]}" for k in ("condition", "gravity", "numbers") if e.get(k)]
+        st.markdown(esc(e["claim"]) if e.get("claim") else "_no claim text_")
+        bits = [f"**{k.capitalize()}:** {esc(e[k])}" for k in ("numbers", "gravity", "condition") if e.get(k)]
         if bits:
-            st.markdown(" · ".join(bits))
-        st.caption("Citation: " + (e.get("citation") or "none given"))
+            st.markdown("  \n".join(bits))
+        st.caption("Citation: " + (esc(e["citation"]) if e.get("citation") else "none given"))
 
 
 with tab_ev:
@@ -262,16 +324,20 @@ with tab_ev:
                "habitats (importance 5 = most relevant). Solid-material results live here; they are evidence, "
                "not model output.")
 
-    f1, f2, f3 = st.columns([2, 2, 1])
+    f1, f2, f3, f4 = st.columns([2, 2, 2, 1.3])
     topics = sorted({e.get("topic") for e in evidence if e.get("topic")})
     invs = sorted({e.get("investigation") for e in evidence if e.get("investigation")})
     sel_topics = f1.multiselect("Topic", topics, format_func=lambda t: TOPIC_LABELS.get(t, t))
     sel_invs = f2.multiselect("Investigation", invs)
-    only_verified = f3.toggle("Verified only", value=False)
+    sources = sorted({str(e.get("source")) for e in evidence if e.get("source")})
+    sel_sources = f3.multiselect("Source", sources)
+    f4.write("")
+    only_verified = f4.toggle("Verified only", value=False)
 
     shown = [e for e in evidence
              if (not sel_topics or e.get("topic") in sel_topics)
              and (not sel_invs or e.get("investigation") in sel_invs)
+             and (not sel_sources or str(e.get("source")) in sel_sources)
              and (not only_verified or e.get("verified"))]
     shown.sort(key=lambda e: (-(e.get("importance") or 0), not e.get("verified"), str(e.get("id"))))
 
@@ -288,9 +354,11 @@ SYSTEM_PROMPT = """You answer questions for a fire-safety dashboard built on NAS
 You may use ONLY the information inside <context>. It contains:
 - <evidence>: findings extracted from NASA documents, each with an "id".
 - <model>: outputs of a statistical model trained on NASA FLEX droplet tests, each with an "id".
+- <insights> (may be empty): trends computed from the FLEX droplet data and model, each with an "id".
+  Like the model, they cover liquid fuel droplets in microgravity only.
 
 Rules:
-1. Every factual sentence must end with the id(s) it relies on in square brackets, e.g. [ev-01] or [model-current].
+1. Every factual sentence must end with the id(s) it relies on in square brackets, e.g. [ev-01], [in-01] or [model-current].
    Use only ids that appear in the context, copied exactly.
 2. If the context does not contain the answer, say so plainly. Do not use outside knowledge, and never
    invent or estimate numbers.
@@ -323,7 +391,8 @@ def model_context() -> list[dict]:
 def ask_llm(question: str, key: str) -> str:
     context = ("<context>\n<evidence>\n" + json.dumps(evidence, ensure_ascii=False, indent=1)
                + "\n</evidence>\n<model>\n" + json.dumps(model_context(), ensure_ascii=False, indent=1, default=str)
-               + "\n</model>\n</context>")
+               + "\n</model>\n<insights>\n" + json.dumps(insights, ensure_ascii=False, indent=1)
+               + "\n</insights>\n</context>")
     r = requests.post(
         LLM_URL,
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json",
@@ -365,28 +434,36 @@ with tab_ask:
                 "(or in `.streamlit/secrets.toml`) and restart the app to enable it. "
                 "The other two tabs work without it.")
     else:
-        st.caption("Answers come only from the evidence list and the model outputs for the condition set "
-                   "in the sidebar, and every statement must cite an id. Anything else is refused.")
+        st.caption("Answers come only from the evidence list, the key findings and the model outputs for the "
+                   "condition set in the sidebar, and every statement must cite an id. Anything else is refused.")
         if evidence_is_mock:
             st.error("Evidence is currently **mock placeholders**, so only model questions can be answered meaningfully.")
         with st.form("ask"):
             q = st.text_input("Question", placeholder="How does lowering pressure change the fire risk for a heptane droplet?")
             go_btn = st.form_submit_button("Ask")
-        if go_btn and q.strip():
+        st.caption("Or try one of these:")
+        asked = q.strip() if go_btn else ""
+        for c, sample in zip(st.columns(2) + st.columns(2), SAMPLE_QUESTIONS):
+            if c.button(sample, width="stretch"):
+                asked = sample
+        if asked:
             try:
                 with st.spinner("Reading the evidence…"):
-                    st.session_state["qa"] = (q, ask_llm(q.strip(), api_key), model_context())
+                    st.session_state["qa"] = (asked, ask_llm(asked, api_key), model_context())
             except (RuntimeError, requests.RequestException) as e:
                 st.session_state.pop("qa", None)
                 st.error(str(e))
         if "qa" in st.session_state:
             q_done, answer, mctx = st.session_state["qa"]
-            st.markdown(f"**Q: {q_done}**")
-            st.markdown(answer)
-            known = {str(e["id"]): e for e in evidence} | {m["id"]: m for m in mctx}
+            st.divider()
+            st.markdown(f"**Q: {esc(q_done)}**")
+            st.markdown(re.sub(r"([~$])", r"\\\1", answer))
+            known = ({str(e["id"]): e for e in evidence} | {str(i["id"]): i for i in insights}
+                     | {m["id"]: m for m in mctx})
+            insight_ids = {str(i["id"]) for i in insights}
             ids = cited_ids(answer)
             good = [i for i in ids if i in known]
-            bad = [i for i in ids if i not in known and re.match(r"^(ev|mock|model)-", i)]
+            bad = [i for i in ids if i not in known and re.match(r"^(ev|in|mock|model)-", i)]
             if bad:
                 st.error("The answer cites ids that do not exist: " + ", ".join(bad) + ". Do not trust it.")
             if not good:
@@ -398,6 +475,9 @@ with tab_ask:
                     if i.startswith("model-"):
                         with st.expander(f"{i} · model output: {src['what']}"):
                             st.json(src)
+                    elif i in insight_ids:
+                        with st.container(border=True):
+                            st.markdown(insight_line(src))
                     else:
                         evidence_card(src)
             st.caption(f"Generated by {LLM_MODEL}; an AI summary, check the cited sources.")
