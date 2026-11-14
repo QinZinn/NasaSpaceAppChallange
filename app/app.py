@@ -35,10 +35,11 @@ FLEX_PATH = fm.DATA_PATH
 ISS = {"x_o2": 0.21, "p_atm": 1.0, "diluent": "N2", "x_diluent": 0.0}
 
 # Second preset: a reduced-pressure, oxygen-enriched cabin of the kind discussed for exploration
-# habitats. The values are ILLUSTRATIVE. Once a document is cited for them, set "source" to that
+# habitats. The values are ILLUSTRATIVE (not an official NASA atmosphere); they sit on real FLEX
+# tests at 0.70-0.71 atm, 30-34% O2. Once a document is cited for them, set "source" to that
 # citation and the "illustrative" labels in the UI disappear.
-EXPLORATION = {"x_o2": 0.34, "p_atm": 0.6, "diluent": "N2", "x_diluent": 0.0, "source": None}
-EXPLORATION_NOTE = EXPLORATION["source"] or "illustrative, needs a cited source"
+EXPLORATION = {"x_o2": 0.34, "p_atm": 0.7, "diluent": "N2", "x_diluent": 0.0, "source": None}
+EXPLORATION_NOTE = EXPLORATION["source"] or "illustrative; matches the elevated-O₂, low-pressure FLEX tests (in-02)"
 
 SAMPLE_QUESTIONS = [
     "What happens to a burning droplet when oxygen goes up?",
@@ -194,7 +195,7 @@ def insight_line(i: dict) -> str:
 
 with tab_risk:
     if insights:
-        with st.expander(f"**Key findings** from the FLEX droplet data ({len(insights)})", expanded=True):
+        with st.expander(f"**Key findings** from the FLEX droplet data ({len(insights)})", expanded=False):
             st.markdown("\n".join("- " + insight_line(i) for i in insights))
             st.caption("Liquid fuel droplets in microgravity only; not predictions for solid materials or habitat fires.")
 
