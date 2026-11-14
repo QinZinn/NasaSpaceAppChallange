@@ -59,7 +59,7 @@ Re-run before submitting; if workstream M changes the model, update all files.
 |---|---|
 | Character limits of the 8 form fields | Unknown; check on the form and trim `submission.md`. |
 | Repo public? Which branch to link? App URL? Demo URL? | Fill `submission.md` §3–4. |
-| LLM actually used in the demo | Code default `anthropic/claude-sonnet-4.5` via OpenRouter, overridable by `FLAME_LLM_MODEL`; confirm. Does the judges' copy have `OPENROUTER_API_KEY`? |
+| LLM in the demo | ✅ user states `z-ai/glm-5.3-flash` via OpenRouter. ⚠️ `app/app.py` still defaults to `anthropic/claude-sonnet-4.5`: run with `FLAME_LLM_MODEL=z-ai/glm-5.3-flash` (or ask workstream A to change the default), otherwise the app caption and the submission will disagree. Does the judges' copy have `OPENROUTER_API_KEY`? |
 | How much of the evidence you checked yourself | Fill the `[CẦN KIỂM TRA]` in §6 and pitch Q8. |
 | PSI licence wording / PSI URL | Check on the PSI site; add URL to references. |
 | Team name as registered | Fill in. |

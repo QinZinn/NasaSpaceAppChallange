@@ -65,7 +65,7 @@ Dự phòng: 3 ảnh chụp trong `app/screenshots/` (slide 5) phòng khi mạng
 
 ## Kết (6:00–6:20) — slide 7
 
-"Tóm lại: dữ liệu mở của NASA, một mô hình nói thật về giới hạn của mình, và bằng chứng kiểm chứng được. AI em dùng để viết mã và soạn bài là Claude; trong app có mô hình học máy scikit-learn và một LLM qua OpenRouter ở tab hỏi đáp, chỉ trả lời từ bằng chứng có trích dẫn. Em xin cảm ơn và sẵn sàng nhận câu hỏi."
+"Tóm lại: dữ liệu mở của NASA, một mô hình nói thật về giới hạn của mình, và bằng chứng kiểm chứng được. AI em dùng để viết mã và soạn bài là Claude; trong app có mô hình học máy scikit-learn và một LLM (z-ai/glm-5.3-flash, qua OpenRouter) ở tab hỏi đáp, chỉ trả lời từ bằng chứng có trích dẫn. Em xin cảm ơn và sẵn sàng nhận câu hỏi."
 
 ---
 
@@ -93,7 +93,7 @@ Em chỉ kết luận cho *những mẫu đó*: silicone mỏng cháy hết ở 
 Nhà thiết kế khí quyển, sinh viên, người làm an toàn nhiệm vụ — để khám phá nhanh và biết nên hỏi gì tiếp. Không dùng để chứng nhận. Em chưa có người dùng thật; hướng tiếp theo là dữ liệu FLEX-2 khi có kết quả.
 
 **8. Em dùng AI thế nào, và ai kiểm chứng?**
-Claude (qua Claude Code) giúp viết mã, trích 27 phát hiện từ file và trang NASA, và soạn bài. Mỗi phát hiện có trích dẫn và cờ verified để kiểm tra lại; sáu insight tính bằng script `scripts/make_insights.py` từ dữ liệu FLEX; mỗi số trong bài nộp gắn với mã bằng chứng, insight hoặc đầu ra `flame_model.py`. **[ĐIỀN: bạn đã tự đối chiếu những mục nào với nguồn — nói đúng mức đó.]** Trong app: mô hình học máy cổ điển và một LLM qua OpenRouter chỉ ở tab hỏi đáp.
+Claude (qua Claude Code) giúp viết mã, trích 27 phát hiện từ file và trang NASA, và soạn bài. Mỗi phát hiện có trích dẫn và cờ verified để kiểm tra lại; sáu insight tính bằng script `scripts/make_insights.py` từ dữ liệu FLEX; mỗi số trong bài nộp gắn với mã bằng chứng, insight hoặc đầu ra `flame_model.py`. **[ĐIỀN: bạn đã tự đối chiếu những mục nào với nguồn — nói đúng mức đó.]** Trong app: mô hình học máy cổ điển và một LLM (z-ai/glm-5.3-flash qua OpenRouter) chỉ ở tab hỏi đáp; Claude không chạy bên trong app.
 
 ---
 *Bonus:* "Bình bọt trên Mir có dập được lửa không?" → Theo bài NASA, phi hành đoàn dùng ba bình bọt và ngọn lửa cuối cùng tự tắt; em không kết luận bình bọt đã dập được nó [ev-27]. "Apollo 1 có phải vi trọng lực không?" → Không, đó là thử nghiệm mặt đất ở 1 g; nó cho thấy nguy cơ của khí quyển 100 % oxy [ev-26]. "Con số bất ngờ nhất?" → silicone 0,27 mm cháy hết ở 1 g nhưng ≈ 0 ở 0 g [ev-02].

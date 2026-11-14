@@ -81,7 +81,7 @@ One message per slide, big numbers, source in small print.
 - **Headline:** From open NASA data to habitat design questions
 - Impact: lets designers and students see how O₂, pressure and CO₂/He/N₂ move a flame toward or away from extinction [in-01, in-04, in-05]; exploratory support, not certification
 - Next: FLEX-2 outcomes · a solid-fuel model from SAFFIRE data · tests at Moon/Mars-relevant atmospheres as NASA data arrives
-- **Use of AI:** Claude (Anthropic) via Claude Code → code, evidence extraction, drafting; scikit-learn model; LLM via OpenRouter in "Ask the Data" (answers only from cited evidence)
+- **Use of AI:** Claude (Anthropic) via Claude Code → code, evidence extraction, drafting; scikit-learn model; LLM `z-ai/glm-5.3-flash` via OpenRouter in "Ask the Data" (answers only from cited evidence)
 - **NASA data:** PSI-25, 26, 68, 69, 98, 99, 100
 - Links: GitHub repo · app · submission page
 
