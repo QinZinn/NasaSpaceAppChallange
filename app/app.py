@@ -398,7 +398,7 @@ def ask_llm(question: str, key: str) -> str:
         LLM_URL,
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json",
                  "X-Title": "Flame in Freefall"},
-        json={"model": LLM_MODEL, "max_tokens": 1024, "temperature": 0,
+        json={"model": LLM_MODEL, "max_tokens": 4000, "temperature": 0,
               "messages": [{"role": "system", "content": SYSTEM_PROMPT},
                            {"role": "user", "content": context + "\n\nQuestion: " + question}]},
         timeout=90,
@@ -416,6 +416,8 @@ def ask_llm(question: str, key: str) -> str:
     text = (choices[0].get("message", {}).get("content") or "") if choices else ""
     if not text.strip():
         raise RuntimeError("LLM returned an empty answer; try again or pick another model.")
+    if choices[0].get("finish_reason") == "length":  # reasoning models can spend the budget before finishing
+        text += "\n\n*(Answer cut off at the length limit; ask a narrower question.)*"
     return text
 
 
