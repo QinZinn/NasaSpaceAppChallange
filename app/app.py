@@ -49,7 +49,7 @@ SAMPLE_QUESTIONS = [
 ]
 
 # OpenRouter (OpenAI-compatible chat completions). Any model id from openrouter.ai/models works.
-LLM_MODEL = os.environ.get("FLAME_LLM_MODEL", "anthropic/claude-sonnet-4.5")
+LLM_MODEL = os.environ.get("FLAME_LLM_MODEL", "z-ai/glm-5.3-flash")
 LLM_URL = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1").rstrip("/") + "/chat/completions"
 
 TOPIC_LABELS = {
