@@ -6,7 +6,8 @@
 > including cover OR a video of max 30 s, public link; 8 required fields (below); 5 criteria
 > (Impact, Creativity, Validity, Relevance, Presentation), each scored 1–10.
 >
-> `[ev-NN]` = id in `evidence/evidence.json` (all 25 items are `verified: true`).
+> `[ev-NN]` = id in `evidence/evidence.json` (27 items, all `verified: true`).
+> `[in-NN]` = id in `insights/insights.json` (6 trends computed from FLEX by `scripts/make_insights.py`).
 > `[model]` = output of `uv run flame_model.py` / `flame_model.predict()` run on 14 Nov 2026.
 > **[CẦN KIỂM TRA]** = still not verified. Character limits per field were not given → check the form and trim.
 > Delete this header block before pasting.
@@ -21,7 +22,7 @@
 
 ## 2. High-Level Summary
 
-Fire does not behave in space as it does on Earth: in NASA's SAFFIRE-II experiment a thin silicone sheet burned completely at 1 g but almost not at all in microgravity, while a cotton-fiberglass fabric burned its full 29 cm in space [ev-01, ev-02]. Flame in Freefall turns 274 NASA FLEX droplet-combustion tests into an interactive risk map with uncertainty bands that greys out everything beyond NASA's data, ranks 25 cited findings from SAFFIRE, BASS-II and FLEX, and lets you question both with an LLM that must cite its sources.
+Fire does not behave in space as it does on Earth: in NASA's SAFFIRE-II experiment a thin silicone sheet burned completely at 1 g but almost not at all in microgravity, while a cotton-fiberglass fabric burned its full 29 cm in space [ev-01, ev-02]. In NASA's FLEX droplet tests, 0 of 17 flames put themselves out at about 0.7 atm with 30–34 % O₂ — the low-pressure, oxygen-rich direction proposed for exploration atmospheres [in-02, ev-14]. Flame in Freefall turns 274 FLEX tests into an interactive risk map with uncertainty bands that greys out everything beyond NASA's data, ranks 27 cited findings, and lets you question the data with an LLM that must cite its sources.
 
 ## 3. Project Demo
 
@@ -39,7 +40,9 @@ Slide-by-slide content: `submission/demo_script.md`. English only.
 ## 5. Project Details
 
 ### The problem
-Apollo 1 and Mir were both spacecraft fires. **[CẦN KIỂM TRA / ĐIỀN: no dates or other details are used until the NASA pages are provided; add one sentence from those pages here.]**
+Two NASA-documented spacecraft fires show why this matters.
+**Apollo 1 (27 January 1967):** during a preflight test on the launch pad, a flash fire in a cabin pressurized with 100 % oxygen swept through the spacecraft too fast for the crew to open the hatch. The three astronauts died of asphyxia from carbon monoxide and other toxic gases; their burns were likely survivable. The review board found the pure-oxygen atmosphere made the fire spread quickly, and the hatch took 90 seconds to open under ideal conditions. Afterwards NASA restricted combustible materials and fitted a hatch that opens in three seconds. It was a ground test at 1 g, not a flight [ev-26].
+**Mir (24 February 1997):** an oxygen-generator canister ignited in the Kvant-1 module with six crew aboard. A three-foot flame burned for several minutes, blocked the route to one of the two Soyuz escape vehicles and filled the modules with dense smoke that took the life-support system several hours to clear. The crew wore oxygen masks and used three foam extinguishers; NASA's account says the flame finally extinguished itself. There was no structural damage and no lasting harm to the crew, and NASA calls it the worst in-orbit fire incident in the history of spaceflight [ev-27].
 Future Moon and Mars habitats will be sealed environments too, yet NASA states that before the Saffire experiments microgravity fire tests were limited to samples of 10 cm or less, so spacecraft fire-safety design has relied on terrestrial fire standards — an inherent risk that grows as missions go farther from Earth [ev-12].
 
 ### What NASA's data shows: gravity changes the answer in both directions
@@ -56,17 +59,30 @@ SAFFIRE-II (PSI-99) burned 5 cm × 29 cm samples in 20 cm/s air flow at about 21
 
 So a material that burns on Earth may not burn in space (silicone, thick PMMA), and a fabric burns end-to-end in space. Testing at 1 g alone can mislead in either direction. Caveats from the evidence: the SIBAL runs were logged at 20 cm/s in PSI-99, whereas the pre-flight plan listed 30 cm/s for one of them [ev-01]; the whole Saffire I–III evidence base is two large and nine smaller samples [ev-19]; Saffire-I to -III covered roughly ISS-like air, not the elevated-oxygen, lower-pressure atmospheres planned for exploration vehicles [ev-14].
 
+### Headline result from FLEX: oxygen-rich, low-pressure air removed self-extinction
+**0 of 17 FLEX droplet tests self-extinguished at 0.70–0.71 atm with 30–34 % O₂ in N₂ (8 heptane, 9 methanol)** [in-02]. This is the region of the data closest to the qualitative description in NASA's Saffire paper of exploration atmospheres — elevated oxygen at lower pressure [ev-14]. NASA gives no exact numbers there, so we claim only the direction, not a match.
+
+Supporting trends (all computed from FLEX, PSI-69):
+- **Oxygen is the strongest lever** [in-01]: heptane self-extinguished in 11 of 14 tests at ≤ 16 % O₂, 5 of 17 at 20–22 % and 0 of 3 at 23–30 %; methanol in 22 of 22, 9 of 12 and 2 of 4.
+- **Pressure alone barely matters; the oxygen enrichment that comes with it does** [in-05] (model, 3 mm droplet): heptane 43 % self-extinction at 21 % O₂/1.0 atm, 41 % at 21 %/0.7 atm, 2 % at 30 %/0.7 atm; methanol 72 %, 70 % and 6 %.
+
+Caveats that go with these numbers:
+- **Liquid fuel droplets only** (methanol, heptane); it says nothing direct about solids [in-02].
+- "Did not self-extinguish" is not "kept burning to the end": it includes tests that ended in **Disruption**. In our own count of these 17 tests, 15 ended in Disruption and 2 (methanol) burned to completion; none ended in extinction (counted from `data/processed/flex_clean.csv`).
+- Seventeen tests, one pressure band, N₂ as the only diluent — an observation about FLEX, not a prediction for a habitat.
+- Counts are observed data; the in-05 figures are model output [in-02, in-05].
+
 ### What we built
 A Streamlit dashboard with three tabs:
 
-1. **Habitat Fire Risk** — choose fuel (methanol or heptane droplet), O₂ fraction, pressure, diluent gas (N₂, CO₂ or He) and droplet size. A heatmap shows the probability that the flame **self-extinguishes** before the droplet is consumed (higher = safer) or the burning-rate constant K in mm²/s (higher = burns faster). Real FLEX tests are plotted on top; every cell outside NASA's tested range is greyed out and labelled "extrapolation". Each answer carries a 90 % interval and the nearest real NASA tests.
-2. **Evidence Ranking** — 25 findings from NASA data files and documents, ranked 1–5 by relevance to Moon/Mars habitat fire safety, filterable by topic, with the claim, test conditions, numbers, citation and a verified flag. Solid-material results live here; they are *evidence, not model output*.
-3. **Ask the Data** — an LLM answers questions using **only** the 25 evidence items and the model's outputs, and must end each factual sentence with the id it used (e.g. `[ev-02]`); the app checks that the ids exist and labels the answer as an AI summary.
+1. **Habitat Fire Risk** — a "Key findings" box (the six `in-` trends) plus choose fuel (methanol or heptane droplet), O₂ fraction, pressure, diluent gas (N₂, CO₂ or He) and droplet size. A heatmap shows the probability that the flame **self-extinguishes** before the droplet is consumed (higher = safer) or the burning-rate constant K in mm²/s (higher = burns faster). Real FLEX tests are plotted on top; every cell outside NASA's tested range is greyed out and labelled "extrapolation". Each answer carries a 90 % interval and the nearest real NASA tests. Two presets: ISS air, and an "Exploration atmosphere" preset (high O₂, low pressure, in the qualitative sense of [ev-14]). **The exact values of that preset are illustrative and have no NASA source; the app says so, and we do not present them as NASA figures.**
+2. **Evidence Ranking** — 27 findings from NASA data files and documents, ranked 1–5 by relevance to Moon/Mars habitat fire safety, filterable by topic, with the claim, test conditions, numbers, citation and a verified flag. Solid-material results and the two spacecraft-fire accounts live here; they are *evidence, not model output*.
+3. **Ask the Data** — an LLM answers questions using **only** the evidence items, the FLEX insights and the model's outputs, and must end each factual sentence with the id it used (e.g. `[ev-02]`); the app checks that the ids exist and labels the answer as an AI summary.
 
 Example (ISS cabin air, 21 % O₂, 1 atm, N₂ balance, 3 mm droplet) [model]:
 methanol → 72 % self-extinction (90 % interval 62–81 %), K = 0.50 mm²/s (0.38–0.61);
 heptane → 43 % self-extinction (32–55 %), K = 0.53 mm²/s (0.42–0.65).
-FLEX's raw tests agree in direction: all 37 methanol tests at ≤ 15 % O₂ ended in extinction, against 13 of 35 above 22 % O₂ [ev-15]. Overall 186 of 274 FLEX tests ended in extinction, 27 burned to completion and 61 ended in disruption [ev-22].
+Overall 186 of 274 FLEX tests ended in extinction, 27 burned to completion and 61 ended in disruption [ev-22].
 
 ### The model and how well it does
 Trained on FLEX (PSI-69), 274 droplet-combustion tests on the ISS, March 2009–December 2011 [ev-22]. Two bootstrap ensembles (200 resamples): logistic regression for self-extinction and ridge regression for K. Evaluated by 5-fold cross-validation **grouped by test day**, so tests run on the same day never sit in both training and test folds [model]:
@@ -86,6 +102,8 @@ These are cross-validated figures for liquid droplets under FLEX conditions. The
 - Only **19 %** of the default risk grid (754 points) lies inside the range NASA tested [model]; the other ~81 % is extrapolation and is greyed out, not hidden.
 - The suppressant evidence is partly simulation: the microgravity values for minimum extinguishing concentration (CO₂ 0.16 → 0.19, N₂ 0.26 → 0.38 mole fraction, 1 g → 0 g) are simulations; the 1 g values are tests [ev-05].
 - Evidence cards carry the original caveats (single runs, uncalibrated sensors, raw comparisons without controls) [ev-04, ev-25].
+- The "Exploration atmosphere" preset in the app is an illustration with no NASA source. We describe it only qualitatively (high O₂, low pressure, as in [ev-14]); no number from it is presented as NASA data, and the model treats it as extrapolation.
+- The headline result (0 of 17) is about FLEX droplets at one pressure band; "not self-extinguished" includes tests ended by Disruption [in-02].
 - If the evidence file ever fails to load, the app falls back to mock placeholders and shows a red "DEMO / MOCK DATA" banner.
 
 ### Impact and relevance
@@ -94,7 +112,7 @@ Atmosphere designers, students and mission-safety enthusiasts can see how oxygen
 ## 6. Use of AI
 
 **Generative AI used to build the project (disclosed):**
-- **Claude (Anthropic), through Claude Code**, was used to write the code (data cleaning, model, dashboard), to extract and draft the 25 evidence items from the NASA files and documents, and to draft this submission and the pitch. Several Claude sessions worked in parallel on separate parts (model, dashboard, evidence, submission). **[CẦN KIỂM TRA: add how much you reviewed by hand — e.g. which evidence items and numbers you personally checked against the source files.]**
+- **Claude (Anthropic), through Claude Code**, was used to write the code (data cleaning, model, dashboard), to extract and draft the 27 evidence items from the NASA files, documents and web pages, to help write the script that computes the FLEX insights (`scripts/make_insights.py`), and to draft this submission and the pitch. Several Claude sessions worked in parallel on separate parts (model, dashboard, evidence, submission). **[CẦN KIỂM TRA: add how much you reviewed by hand — e.g. which evidence items and numbers you personally checked against the source files.]**
 - Safeguards: every evidence item carries a file/page citation and a `verified` flag so it can be re-checked; every number in this text is tied to an evidence id or to the model's printed output.
 
 **AI inside the running product:**
@@ -125,7 +143,6 @@ Cleaned FLEX table: `data/processed/flex_clean.csv` (column "CO" in the raw head
 - scikit-learn 1.9.1 — https://scikit-learn.org
 - pandas 3.1.1 — https://pandas.pydata.org
 - NumPy — https://numpy.org (version per `uv.lock`)
-- pypdf — https://pypdf.readthedocs.io **[CẦN KIỂM TRA: confirm workstream B used it to read the PDFs]**
 - OpenRouter API — https://openrouter.ai (access to the LLM used in "Ask the Data")
 
 **NASA data and documents (as cited in `evidence/evidence.json`)**
@@ -136,7 +153,9 @@ Cleaned FLEX table: `data/processed/flex_clean.csv` (column "CO" in the raw head
 - BASS-II data FAQ [ev-03, ev-04, ev-07, ev-09, ev-18, ev-21, ev-25]
 - SAFFIRE-II data description (SAFFIRE-II_DoD.docx) [ev-13]
 - Cited second-hand through the FLEX Test Plan, not read directly: Takahashi et al., 2004; Katta et al., 2004 [ev-05]; Honda & Ronney, 1998 [ev-16]
-- Apollo 1 and Mir: **[CẦN KIỂM TRA / ĐIỀN: add the two NASA page URLs/titles once provided; nothing is cited until then]**
+- NASA Office of Safety and Mission Assurance, "Apollo 1 AS-204" (Apollo, Challenger, Columbia Lessons Learned Program) — https://sma.nasa.gov/sma-disciplines/accllp/apollo-1 [ev-26]
+- John Uri, "25 Years Ago: Fire Aboard Space Station Mir", NASA Johnson Space Center, 23 Feb 2022 — https://www.nasa.gov/history/25-years-ago-fire-aboard-space-station-mir/ [ev-27]
+- FLEX insights `in-01`…`in-06`: computed by `scripts/make_insights.py` from PSI-69 / `flex_clean.csv` and the FLEX model (this repository)
 
 ---
 Team: Zinnn — NASA Space Apps Challenge 2026, Hà Nội **[CẦN KIỂM TRA: team name as registered]**.

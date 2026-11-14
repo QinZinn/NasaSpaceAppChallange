@@ -1,19 +1,24 @@
 # submission/ — Workstream C
 
-**Hạn nộp để được chấm giải Hà Nội: 11:00 Chủ nhật 15/11/2026.** (CLAUDE.md vẫn ghi 23:59 — file dùng chung, tôi không sửa.)
+**Hạn nộp để được chấm giải Hà Nội: 11:00 Chủ nhật 15/11/2026.**
 
 | File | Nội dung |
 |---|---|
-| `submission.md` | 8 ô của form (Project Name, High-Level Summary, Project Demo, Final Project, Project Details, Use of AI, NASA Data, References), tiếng Anh, số liệu gắn id `ev-NN` / `[model]` |
-| `demo_script.md` | Demo đã chọn: 7 slide (kể cả bìa), nội dung từng slide |
-| `pitch_5min.md` | Kịch bản nói ~6 phút tiếng Việt chia theo 5 tiêu chí + 8 câu hỏi giám khảo |
+| `submission.md` | 8 ô của form (Project Name, High-Level Summary, Project Demo, Final Project, Project Details, Use of AI, NASA Data, References), tiếng Anh; số liệu gắn `ev-NN` / `in-NN` / `[model]` |
+| `demo_script.md` | Demo 7 slide (kể cả bìa), nội dung từng slide; slide 4 = thông điệp chính "0 trên 17" (in-02) |
+| `pitch_5min.md` | Kịch bản nói ~6 phút 20 giây tiếng Việt, chia theo 5 tiêu chí + 8 câu hỏi giám khảo |
 | `fact_check.md` | Đối chiếu từng con số; danh sách việc còn mở |
 
-## Việc còn lại (theo thứ tự)
+## Quy tắc đã áp dụng
+- Apollo 1 và Mir chỉ dùng chi tiết trong ev-26, ev-27; không nêu tên phi hành gia; Mir: lửa "tự tắt" sau khi phi hành đoàn dùng bình bọt.
+- Thông điệp chính in-02 luôn đi kèm caveat: chỉ giọt nhiên liệu lỏng; "không tự tắt" gồm cả Disruption.
+- Preset "Exploration atmosphere" (34 % O₂, 0,6 atm) là minh họa chưa có nguồn: không nêu như số liệu NASA; chỉ nói định tính theo ev-14.
+- pypdf đã bỏ khỏi References.
 
-1. Dán 2 trang NASA về Apollo 1 và Mir → điền chỗ `[ĐIỀN]` ở slide 1, mở đầu pitch, §5 và §8 của `submission.md`. Chưa dán thì giữ nguyên (không ngày tháng).
-2. Làm 7 slide theo `demo_script.md`, xuất link công khai, mở thử bằng cửa sổ ẩn danh, dán vào §3.
-3. Dán link repo (công khai?) / app vào §4; kiểm giới hạn ký tự từng ô trên form.
-4. Điền mức bạn tự kiểm evidence (§6, câu hỏi 8 của pitch). Xác nhận model LLM thực dùng và có API key khi demo.
-5. Chạy lại `uv run flame_model.py` ngay trước khi nộp; số khác thì sửa 4 file.
+## Việc còn lại (theo thứ tự)
+1. Làm 7 slide theo `demo_script.md`, xuất link công khai, mở thử bằng cửa sổ ẩn danh, dán vào §3 của `submission.md`.
+2. Dán link repo (công khai?) / app vào §4; kiểm giới hạn ký tự từng ô trên form.
+3. Điền mức bạn tự kiểm evidence (§6; câu hỏi 8 của pitch). Xác nhận model LLM dùng khi demo và API key.
+4. Chụp lại ảnh Ask the Data có câu trả lời kèm mã trích dẫn (nếu key chạy được).
+5. Chạy lại `uv run flame_model.py` trước khi nộp; số khác thì sửa các file.
 6. Xóa khối ghi chú đầu `submission.md` trước khi dán vào form.
