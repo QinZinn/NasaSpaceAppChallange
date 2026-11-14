@@ -323,5 +323,31 @@
     "importance": 2,
     "citation": "BASS-II data FAQ, 'Columns in test matrix'; BASS-II Science Requirements (SRD_BASS-II.pdf), slide 1; data/processed/bass2_structured.csv, column quality_flags",
     "verified": true
+  },
+  {
+    "id": "ev-26",
+    "source": "NASA web page",
+    "investigation": "Apollo 1 (AS-204)",
+    "claim": "In the Apollo 1 fire of 27 January 1967 a flash fire in a cabin pressurized with 100% oxygen swept through the spacecraft too fast for the crew to open the hatch; the three astronauts died of asphyxia from carbon monoxide and other toxic gases, and their burns were likely survivable.",
+    "condition": "Preflight test on the launch pad, hatches closed, crew in spacesuits. The review board found the pure oxygen atmosphere made the fire spread quickly; the three-piece hatch took 90 seconds to open under ideal conditions. Afterwards NASA restricted combustible materials in the spacecraft and fitted a hatch that opens in three seconds.",
+    "gravity": "1g (ground test on the launch pad, not in flight)",
+    "numbers": "100% O2 cabin; 3 crew lost; hatch 90 s to open, replaced by a 3 s hatch",
+    "topic": "oxygen_limit",
+    "importance": 4,
+    "citation": "NASA Office of Safety and Mission Assurance, 'Apollo 1 AS-204' (Apollo, Challenger, Columbia Lessons Learned Program), https://sma.nasa.gov/sma-disciplines/accllp/apollo-1",
+    "verified": true
+  },
+  {
+    "id": "ev-27",
+    "source": "NASA web page",
+    "investigation": "Mir fire 1997",
+    "claim": "On 24 February 1997 an oxygen generator canister ignited aboard the Mir space station: a three-foot flame burned for several minutes, blocked the route to one of the two Soyuz escape vehicles and filled the modules with dense smoke that took the life support system several hours to clear.",
+    "condition": "Six crew aboard; solid-fuel oxygen generator in the Kvant-1 module. The crew put on oxygen masks and used three foam extinguishers; the article says the flame finally extinguished itself. No structural damage and no lasting harm to the crew. NASA calls it the worst in-orbit fire incident in the history of spaceflight.",
+    "gravity": "0g (in orbit, crewed space station)",
+    "numbers": "three-foot flame, several minutes; 6 crew; 3 extinguishers; smoke cleared over several hours; generator type used over 2,500 times before without incident",
+    "topic": "smoke",
+    "importance": 4,
+    "citation": "John Uri, '25 Years Ago: Fire Aboard Space Station Mir', NASA Johnson Space Center, 23 Feb 2022, https://www.nasa.gov/history/25-years-ago-fire-aboard-space-station-mir/",
+    "verified": true
   }
 ]
