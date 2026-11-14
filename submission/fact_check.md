@@ -1,55 +1,56 @@
-# Fact check — every number/claim in submission.md and demo_script.md
+# Fact check — numbers and claims in submission.md, demo_script.md, pitch_5min.md
 
-Status key: ✅ traced to a repo file or command output · ⚠️ [CẦN KIỂM TRA] not yet verified against a primary source.
+✅ = traced to a repo file, `evidence.json` id or command output · ⚠️ = [CẦN KIỂM TRA], not verified.
+Updated 14 Nov 2026 after pulling `main` (evidence.json: 25 items, all `verified: true`; app/ present).
 
-## Model numbers — from `uv run flame_model.py` (run 14 Nov 2026)
+## Model numbers — `uv run flame_model.py`, re-run 14 Nov 2026 (unchanged since the first draft)
 
 | Claim | Value | Status |
 |---|---|---|
-| Extinction tests | 261 | ✅ evaluate().n_extinction |
-| Base rate self-extinguished | 0.686 | ✅ |
-| ROC-AUC | 0.881 | ✅ |
-| Balanced accuracy | 0.762 | ✅ |
-| K tests | 256 | ✅ |
-| K R² | 0.71 | ✅ |
+| Tests used: extinction / K | 261 / 256 | ✅ evaluate() |
+| Base rate self-extinguished (of the 261) | 0.686 | ✅ |
+| ROC-AUC · balanced accuracy · K R² | 0.881 · 0.762 · 0.71 | ✅ |
 | CV scheme | GroupKFold(5) by test day | ✅ |
-| FLEX rows / fuels / dates | 274; Methanol 157, Heptane 117; 2009-03-05 to 2011-12-08 | ✅ flex_clean.csv |
-| In-domain share of default grid | 0.19 of 754 → "~81 % extrapolation" | ✅ self-test output (754, 9) |
-| Bootstrap resamples | 200 | ✅ `N_BOOT` in flame_model.py |
+| Bootstrap resamples | 200 | ✅ `N_BOOT` |
+| In-domain share of default grid | 19 % (0.187 of 754) → "81 % extrapolation" | ✅ risk_grid |
+| ISS air, 3 mm droplet, methanol | 72 % (62–81 %), K 0.50 (0.38–0.61) | ✅ predict() |
+| ISS air, 3 mm droplet, heptane | 43 % (32–55 %), K 0.53 (0.42–0.65) | ✅ predict() |
 
-**Re-run `uv run flame_model.py` just before submitting**: if workstream M changes the model, update every table here.
+Re-run before submitting; if workstream M changes the model, update all four files.
 
-## SAFFIRE-II numbers — from `data/raw/PSI-99_SAFFIRE-II.csv`
+## Evidence-backed numbers
 
-| Claim | Status |
+| Claim in text | Evidence id | Status |
+|---|---|---|
+| SIBAL: 29 cm, 2.1 and 2.6 mm/s at 0 g; 1 g burned completely | ev-01 | ✅ |
+| One SIBAL sample planned at 30 cm/s, logged 20 cm/s | ev-01 | ✅ |
+| Silicone 0.27 / 0.61 / 1.03 mm: 0 g ≈ 0; 1 g complete / 7.6 cm @ 1.2 mm/s / ≈ 0 | ev-02 | ✅ |
+| Thick PMMA ≈ 10 cm, flame anchored, 0.01–0.04 mm/s; 1 g complete | ev-06 | ✅ |
+| Nomex not ignited by burning PMMA | ev-10 | ✅ |
+| Prior tests ≤ 10 cm; reliance on terrestrial standards | ev-12 | ✅ |
+| Saffire I–III cover ISS-like air, not exploration atmospheres | ev-14 | ✅ |
+| 2 large + 9 smaller samples | ev-19 | ✅ |
+| FLEX 186 extinction / 27 completion / 61 disruption of 274; 157 methanol, 117 heptane; Mar 2009–Dec 2011 | ev-22 | ✅ |
+| Methanol 37/37 at ≤ 0.15 O₂ vs 13/35 above 0.22 | ev-15 | ✅ |
+| Median K heptane: He 0.65, CO₂ 0.50 mm²/s | ev-23 | ✅ |
+| MEC 1 g → 0 g: CO₂ 0.16 → 0.19, N₂ 0.26 → 0.38; 0 g values are simulations | ev-05 | ✅ |
+| CO₂ may be less effective in microgravity | ev-16 | ✅ |
+| PMMA rod burned at 14.8 % O₂ (single run) | ev-04 | ✅ |
+| Saffire-I flew on an uncrewed Cygnus after leaving the ISS | ev-11 | ✅ (resolves the earlier "Cygnus" doubt; SAFFIRE-II's carrier is not claimed) |
+
+Resolved since the first draft: "?-g" column = microgravity (confirmed by workstream B); SAFFIRE-II sample 2-6 is SIBAL (ev-01); Submission rules, 8 fields and 5 criteria (confirmed by user from the Hà Nội organisers).
+
+## Still open ⚠️
+
+| Item | What to do |
 |---|---|
-| 20 cm/s concurrent flow, ~21.5–22.1 % O₂ | ✅ CSV |
-| Silicone 0.27 mm: 0 g burn length ~0, 1 g "Complete" | ✅ CSV; ⚠️ "?-g" header read as µ-g |
-| Silicone 0.61 mm: 0 g ~0; 1 g 7.6 cm @ 1.2 mm/s | ✅ CSV |
-| SIBAL 2-5: 29 cm, 2.1 mm/s (0 g); 1 g complete | ✅ CSV |
-| 2-6 is SIBAL, 29 cm, 2.6 mm/s | ⚠️ material cell empty in CSV (inferred from row above) |
-| PMMA 2-8: ~10 cm damage, flame anchored (Note 3/4); 1 g complete | ✅ CSV |
-| 1 g runs share the same flow/ignition settings as flight runs | ⚠️ not stated in CSV — check NASA SAFFIRE-II report |
-| "Cygnus cargo vehicle" as the host | ⚠️ from general knowledge, not in repo — confirm with NASA SAFFIRE page |
-| Thickness typos ("037 mm") | ⚠️ avoided in text; rows 2-4 to 2-6 not quoted by thickness |
-
-## Historical claims — NOT in the repo, from general knowledge
-
-| Claim | Status |
-|---|---|
-| Apollo 1 fire 27 Jan 1967, three astronauts died | ⚠️ verify: NASA Apollo 204 Review Board report |
-| Pure/near-pure O₂ cabin atmosphere | ⚠️ same source |
-| Mir fire Feb 1997 from an oxygen-generating canister | ⚠️ verify: NASA/ESA incident accounts |
-
-Per CLAUDE.md honesty rules these need a cited document. Ask workstream B to add them to `evidence/evidence.json`
-(or give me the citations), then flip to ✅. If they cannot be verified before the deadline, drop the dates
-and keep only "Apollo 1 and Mir" as widely-known examples.
-
-## Process / rules claims
-
-| Claim | Status |
-|---|---|
-| 30 s video or 7 slides, public link, no login, English subtitles | ⚠️ from 2021–2025 guides via search snippets; 2026 guide unreadable |
-| Judging criteria Impact, Creativity, Validity, Relevance, Presentation | ⚠️ from 2025 guide per search; confirm 2026 |
-| Submission closes 15 Nov 2026 23:59 local | ✅ CLAUDE.md; official page says same (secondhand) |
-| Project Submission Guide / Judging Guide 2026 contents | ⚠️ could not be fetched (HTTP 503; curl TLS error) |
+| Apollo 1 / Mir | No dates or details are used. User offered to paste two NASA pages; until then slide 1, pitch opening and references carry a `[ĐIỀN]` slot. |
+| Character limits of the 8 form fields | Unknown; check on the form and trim `submission.md`. |
+| Repo public? Which branch to link? App URL? Demo URL? | Fill `submission.md` §3–4. |
+| LLM actually used in the demo | Code default is `anthropic/claude-sonnet-4.5` via OpenRouter, overridable by `FLAME_LLM_MODEL`; confirm what the demo runs on. |
+| Does the judges' copy have an `OPENROUTER_API_KEY`? | If not, tab 3 is off; say so in §4 and skip it in the demo. |
+| How much of the evidence you checked yourself | Fill the `[CẦN KIỂM TRA]` in §6 and pitch Q8. I do not claim a human review that I cannot see. |
+| PSI licence wording / PSI URL | Check on the PSI site; add URL to references. |
+| pypdf used by workstream B? | Confirm or delete from references. |
+| Team name as registered | Fill in. |
+| "CLAUDE.md" still says deadline 23:59 | Shared file; change only if you ask. Real Hà Nội deadline: 11:00 Sun 15 Nov. |
