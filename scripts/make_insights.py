@@ -119,6 +119,23 @@ out.append({
     "basis": "FLEX tests (PSI-69) ending in Extinction with both diameters recorded. Observed data.",
 })
 
+# in-07: oxygen limits (highest O2 at which self-extinction is still likely)
+rows = []
+for fuel in ("Heptane", "Methanol"):
+    for t in (0.9, 0.5):
+        r = fm.oxygen_limit(fuel, 1.0, target=t)
+        assert r["status"] == "ok" and r["in_domain"]
+        rows.append(f"{fuel}, {pct(t)} target: {100 * r['x_o2_max']:.1f}% O2 "
+                    f"({100 * r['low']:.1f}-{100 * r['high']:.1f}%)")
+out.append({
+    "id": "in-07",
+    "statement": "The model gives an oxygen limit: the highest O2 level at which a droplet flame still "
+                 "puts itself out with a chosen probability. Heptane needs less oxygen than methanol to keep burning.",
+    "numbers": "Highest O2 for self-extinction, 3 mm droplet in O2/N2 at 1 atm (90% interval). " + "; ".join(rows) + ".",
+    "basis": "Logistic model on FLEX (PSI-69), inside the data domain. A statistical estimate for liquid "
+             "droplets in microgravity, not a flammability standard.",
+})
+
 path = ROOT / "insights" / "insights.json"
 path.write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 for i in out:

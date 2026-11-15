@@ -34,5 +34,11 @@
   "statement": "When a flame self-extinguishes, unburned fuel is left behind, and for heptane most of the droplet remains.",
   "numbers": "Median droplet diameter at visible-flame extinction, as a share of initial diameter: heptane 84% (56 tests), methanol 57% (103 tests).",
   "basis": "FLEX tests (PSI-69) ending in Extinction with both diameters recorded. Observed data."
+ },
+ {
+  "id": "in-07",
+  "statement": "The model gives an oxygen limit: the highest O2 level at which a droplet flame still puts itself out with a chosen probability. Heptane needs less oxygen than methanol to keep burning.",
+  "numbers": "Highest O2 for self-extinction, 3 mm droplet in O2/N2 at 1 atm (90% interval). Heptane, 90% target: 14.7% O2 (12.7-16.5%); Heptane, 50% target: 20.3% O2 (19.1-21.5%); Methanol, 90% target: 17.9% O2 (16.4-19.4%); Methanol, 50% target: 23.3% O2 (22.1-24.9%).",
+  "basis": "Logistic model on FLEX (PSI-69), inside the data domain. A statistical estimate for liquid droplets in microgravity, not a flammability standard."
  }
 ]

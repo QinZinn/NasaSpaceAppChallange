@@ -156,6 +156,67 @@ def risk_grid(fuel: str, diluent: str = "N2", x_diluent: float = 0.0, d0_mm: flo
     return pd.concat([X[["x_o2", "p_atm"]], out], axis=1)
 
 
+_O2_SCAN = np.round(np.arange(0.05, 0.6001, 0.001), 3)
+
+
+def _oxygen_limit_rows(rows: list[dict], target: float) -> pd.DataFrame:
+    """For each condition (x_o2 ignored), find the highest O2 fraction at which the predicted
+    self-extinction probability is still >= target. One row out per condition in."""
+    f = _fit()
+    out = []
+    for base in rows:
+        X = pd.DataFrame([{**base, "x_o2": o} for o in _O2_SCAN])
+        Z1 = np.c_[np.ones(len(X)), f["scaler"].transform(X[FEATURES])]
+        p = 1.0 / (1.0 + np.exp(-(Z1 @ f["clf"].T)))  # (n_o2, boot)
+
+        def last_ok(col):
+            ok = np.nonzero(col >= target)[0]
+            return np.nan if len(ok) == 0 else _O2_SCAN[ok[-1]]
+
+        mean = p.mean(1)
+        centre = last_ok(mean)
+        per_boot = np.array([last_ok(p[:, b]) for b in range(p.shape[1])])
+        if np.isnan(centre):
+            status = "never"       # even at 5% O2 the target is not reached
+        elif centre >= _O2_SCAN[-1]:
+            status = "always"      # target met across the whole scanned range
+        else:
+            status = "ok"
+        row = {"x_o2_max": centre, "status": status, "in_domain": False,
+               "low": float(np.nanquantile(per_boot, 0.05)) if np.isfinite(per_boot).any() else np.nan,
+               "high": float(np.nanquantile(per_boot, 0.95)) if np.isfinite(per_boot).any() else np.nan}
+        if status == "ok":
+            chk = _predict_frame(pd.DataFrame([{**base, "x_o2": centre}])).iloc[0]
+            row["in_domain"] = bool(chk["in_domain"])
+        out.append(row)
+    return pd.DataFrame(out)
+
+
+def oxygen_limit(fuel: str, p_atm: float, diluent: str = "N2", x_diluent: float = 0.0,
+                 d0_mm: float = 3.0, target: float = 0.9) -> dict:
+    """Highest O2 mole fraction at which a droplet flame still self-extinguishes with
+    probability >= target, for the given pressure, diluent and droplet size.
+
+    Returns x_o2_max with a 90% bootstrap interval (low, high), status ("ok", "never" or
+    "always") and in_domain (whether NASA FLEX tests exist near that point). This is a
+    statistical estimate for liquid droplets in microgravity, not a safety standard.
+    """
+    base = _features(fuel, 0.21, p_atm, diluent, x_diluent, d0_mm)
+    r = _oxygen_limit_rows([base], target).iloc[0]
+    rnd = lambda v: None if pd.isna(v) else round(float(v), 3)
+    return {"target": target, "x_o2_max": rnd(r["x_o2_max"]), "low": rnd(r["low"]), "high": rnd(r["high"]),
+            "status": r["status"], "in_domain": bool(r["in_domain"]), "source": "PSI-69 FLEX"}
+
+
+def oxygen_limit_curve(fuel: str, diluent: str = "N2", x_diluent: float = 0.0, d0_mm: float = 3.0,
+                       target: float = 0.9, p_atm=np.round(np.arange(0.5, 3.01, 0.1), 2)) -> pd.DataFrame:
+    """oxygen_limit across pressures, for drawing the threshold line on the risk map."""
+    rows = [_features(fuel, 0.21, p, diluent, x_diluent, d0_mm) for p in p_atm]
+    out = _oxygen_limit_rows(rows, target)
+    out.insert(0, "p_atm", list(p_atm))
+    return out
+
+
 def evaluate(n_splits: int = 5) -> dict:
     """Day-grouped cross-validation, so tests run on the same day never straddle folds."""
     from sklearn.metrics import balanced_accuracy_score, r2_score, roc_auc_score
@@ -200,5 +261,8 @@ if __name__ == "__main__":
         r = predict(*q)
         r.pop("nearest_tests")
         print(q, "->", r)
+    for fuel in FUELS:
+        for t in (0.5, 0.9):
+            print("oxygen_limit", fuel, "1 atm, N2, target", t, "->", oxygen_limit(fuel, 1.0, target=t))
     g = risk_grid("Heptane")
     print(g.shape, "in_domain share:", round(g["in_domain"].mean(), 2))

@@ -19,14 +19,18 @@ fast does it burn?**
 - **Oxygen is the strongest lever.** Near 1 atm in O₂/N₂, heptane flames self-extinguished in 11 of 14
   tests at ≤16% O₂, 5 of 17 at 20–22%, and 0 of 3 at 23–30%.
 
-All six computed findings are in `insights/insights.json`; 27 cited findings from NASA tables and
+- **Oxygen limits.** For a 3 mm droplet in O₂/N₂ at 1 atm, the model puts the highest oxygen level at
+  which a flame still self-extinguishes with 90% probability at 17.9% O₂ for methanol (90% interval
+  16.4–19.4%) and 14.7% for heptane (12.7–16.5%).
+
+All seven computed findings are in `insights/insights.json`; 27 cited findings from NASA tables and
 documents are in `evidence/evidence.json`.
 
 ## The dashboard
 
 | Tab | What it does |
 |---|---|
-| **Habitat Fire Risk** | Set oxygen, pressure, fuel and diluent gas; get the probability that a droplet flame self-extinguishes and its burning-rate constant K, with uncertainty bands and a risk map. Everything beyond NASA's data is greyed out. |
+| **Habitat Fire Risk** | Set oxygen, pressure, fuel and diluent gas; get the probability that a droplet flame self-extinguishes and its burning-rate constant K, with uncertainty bands and a risk map. Pick a self-extinction target (50%, 80% or 90%) to get the **oxygen limit**: the highest O₂ level that still meets it, drawn as a line on the map. Everything beyond NASA's data is greyed out. An *About the fuels* panel describes the two fuels the model covers. |
 | **Evidence Ranking** | 27 findings ranked by relevance to habitat fire safety, each with its source and citation. |
 | **Ask the Data** | Ask a question; an LLM answers only from the evidence, the insights and the model output, and must cite an id for every statement. |
 
@@ -65,7 +69,7 @@ ROC-AUC 0.881, balanced accuracy 0.762, R² 0.71 for K.
 | `data/processed/` | Cleaned FLEX table and structured BASS-II table |
 | `flame_model.py` | The models, the data-domain check and the evaluation |
 | `scripts/` | Data cleaning and insight computation |
-| `insights/insights.json` | Six trends computed from FLEX data and the model |
+| `insights/insights.json` | Seven trends computed from FLEX data and the model |
 | `evidence/` | Cited findings and the BASS-II parser |
 | `app/` | Streamlit dashboard and screenshots |
 
@@ -84,6 +88,9 @@ Evidence also cites NASA documents for these investigations and NASA's pages on 
 - The dataset is small (274 tests). About 81% of the default risk map is extrapolation and is greyed out.
 - "Did not self-extinguish" includes tests that ended when the droplet was disrupted.
 - The "Exploration atmosphere" preset is illustrative, not a NASA figure.
+- The oxygen limit is a statistical estimate from the same model, not a flammability standard.
+- FLEX-2 (PSI-68) tested more fuels (iso-octane, n-octane, decane, ethanol, propanol/glycerol mixtures),
+  but its experimental table has no outcomes, so those fuels are not in the model yet.
 
 ## Use of AI
 

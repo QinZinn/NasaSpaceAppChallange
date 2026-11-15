@@ -30,6 +30,7 @@ EVIDENCE_PATH = ROOT / "evidence" / "evidence.json"
 MOCK_PATH = Path(__file__).resolve().parent / "mocks" / "evidence_mock.json"
 INSIGHTS_PATH = Path(os.environ.get("FLAME_INSIGHTS", ROOT / "insights" / "insights.json"))
 FLEX_PATH = fm.DATA_PATH
+FLEX2_PATH = ROOT / "data" / "raw" / "PSI-68_FLEX-2.csv"
 
 # ISS cabin atmosphere: sea-level-like air, 21% O2 in N2 at 1 atm.
 ISS = {"x_o2": 0.21, "p_atm": 1.0, "diluent": "N2", "x_diluent": 0.0}
@@ -80,6 +81,24 @@ def grid(fuel, diluent, x_diluent, d0_mm) -> pd.DataFrame:
 @st.cache_data(show_spinner=False)
 def point(fuel, x_o2, p_atm, diluent, x_diluent, d0_mm) -> dict:
     return fm.predict(fuel, x_o2, p_atm, diluent=diluent, x_diluent=x_diluent, d0_mm=d0_mm)
+
+
+@st.cache_data(show_spinner=False)
+def o2_limit(fuel, p_atm, diluent, x_diluent, d0_mm, target) -> dict:
+    return fm.oxygen_limit(fuel, p_atm, diluent=diluent, x_diluent=x_diluent, d0_mm=d0_mm, target=target)
+
+
+@st.cache_data(show_spinner=False)
+def o2_limit_curve(fuel, diluent, x_diluent, d0_mm, target) -> pd.DataFrame:
+    return fm.oxygen_limit_curve(fuel, diluent=diluent, x_diluent=x_diluent, d0_mm=d0_mm, target=target)
+
+
+@st.cache_data(show_spinner=False)
+def flex2_fuels() -> list[str]:
+    try:
+        return pd.read_csv(FLEX2_PATH).iloc[:, 0].dropna().astype(str).str.strip().tolist()
+    except (OSError, pd.errors.ParserError, UnicodeDecodeError):
+        return []
 
 
 @st.cache_data(show_spinner=False)
@@ -166,6 +185,10 @@ with st.sidebar:
         st.session_state["x_diluent"] = min(st.session_state.get("x_diluent", 0.0), max_dil)
         x_diluent = st.slider(f"{diluent} mole fraction", 0.0, max_dil, step=0.01, key="x_diluent")
     d0_mm = st.slider("Initial droplet diameter (mm)", 1.0, 6.0, 3.0, step=0.1, key="d0_mm")
+    target = st.select_slider(
+        "Self-extinction target", options=[0.5, 0.8, 0.9], value=0.9, format_func=lambda v: f"{v:.0%}", key="target",
+        help="The oxygen limit is the highest O₂ fraction at which the flame still goes out by itself "
+             "with at least this probability.")
     st.caption("Model: liquid fuel droplets only, trained on NASA FLEX (PSI-69) tests on the ISS. "
                "It does not predict solid-material or real habitat fires.")
 
@@ -238,6 +261,16 @@ with tab_risk:
                 customdata=t[["flex_id", "d0_mm", "test_end"]].values,
                 hovertemplate="%{customdata[0]} · d₀ %{customdata[1]} mm<br>%{customdata[2]}<extra>PSI-69</extra>",
             ))
+        curve = o2_limit_curve(fuel, diluent, x_diluent, d0_mm, target)
+        curve = curve[(curve["status"] == "ok") & curve["in_domain"]]
+        if len(curve):
+            for width, color, show in ((6, "black", False), (3, "white", True)):
+                fig.add_trace(go.Scatter(
+                    x=curve["x_o2_max"], y=curve["p_atm"], mode="lines", showlegend=show,
+                    name=f"O₂ limit (≥{target:.0%} self-extinction to its left)",
+                    line=dict(color=color, width=width),
+                    hovertemplate="O₂ limit %{x:.3f} at %{y:.1f} atm<extra></extra>",
+                ))
         fig.add_trace(go.Scatter(
             x=[ISS["x_o2"]], y=[ISS["p_atm"]], mode="markers", name="ISS cabin",
             marker=dict(symbol="star", size=15, color="#00d5ff", line=dict(color="black", width=1)),
@@ -287,8 +320,50 @@ with tab_risk:
                   help="Burning-rate constant from the d² law. Higher burns faster.")
         c2.caption(f"90% interval {pred['k_low']:.2f} – {pred['k_high']:.2f}")
 
+        lim = o2_limit(fuel, p_atm, diluent, x_diluent, d0_mm, target)
+        st.markdown(f"**Oxygen limit** for ≥{target:.0%} self-extinction at {p_atm:.1f} atm")
+        if lim["status"] == "ok":
+            l1, l2 = st.columns(2)
+            l1.metric("Max O₂", f"{lim['x_o2_max']:.1%}",
+                      help="Highest O₂ mole fraction at which the model still gives at least the target "
+                           "probability of self-extinction, other settings as selected. An estimate from "
+                           "NASA FLEX droplet tests, not a safety standard.")
+            l1.caption(f"90% interval {lim['low']:.1%} – {lim['high']:.1%}")
+            margin = lim["x_o2_max"] - x_o2
+            if margin >= 0:
+                l2.success(f"Selected O₂ is {margin * 100:.1f} percentage points below the limit.")
+            else:
+                l2.error(f"Selected O₂ is {-margin * 100:.1f} percentage points above the limit.")
+            if not lim["in_domain"]:
+                st.warning("This limit lies outside the range of NASA FLEX tests: extrapolation.")
+        elif lim["status"] == "never":
+            st.error("No O₂ level down to 5% reaches this target under these settings.")
+        else:
+            st.success("The target is met at every O₂ level up to 60% under these settings.")
+
         st.markdown("**Nearest real tests** (" + pred["source"] + ")")
         st.dataframe(pd.DataFrame(pred["nearest_tests"]), hide_index=True, width="stretch")
+
+        with st.expander("About the fuels"):
+            ft = flex_tests().dropna(subset=["x_o2", "p_atm", "d0_mm"])
+            summ = ft.groupby("fuel").agg(
+                tests=("extinguished", "size"), self_extinguished=("extinguished", "mean"),
+                median_K=("k_mm2_s", "median")).reset_index()
+            summ["self_extinguished"] = summ["self_extinguished"].map("{:.0%}".format)
+            summ["median_K"] = summ["median_K"].round(2)
+            summ.columns = ["Fuel", "FLEX tests", "Self-extinguished", "Median K (mm²/s)"]
+            st.dataframe(summ, hide_index=True, width="stretch")
+            st.markdown(
+                "- **Methanol** (CH₃OH), an alcohol.\n"
+                "- **Heptane** (n-C₇H₁₆), a hydrocarbon of the kind found in fuels and solvents.\n\n"
+                "These are the two liquids in NASA's FLEX table (PSI-69), so they are the only fuels the "
+                "model covers. The counts above span all tested atmospheres, so they describe the dataset, "
+                "not a like-for-like comparison; use the model for that.")
+            others = [f for f in flex2_fuels() if f]
+            if others:
+                st.caption("NASA's FLEX-2 (PSI-68) also tested: " + "; ".join(others)
+                           + ". Its experimental table lists test conditions only, without outcomes, "
+                             "so these fuels are not in the model yet.")
 
         with st.expander("How good is this model?"):
             m = cv_metrics()
@@ -389,6 +464,11 @@ def model_context() -> list[dict]:
         entry("model-current", "condition currently selected in the dashboard", fuel, current),
         entry("model-iss-methanol", "ISS cabin atmosphere, methanol droplet", "Methanol", ISS),
         entry("model-iss-heptane", "ISS cabin atmosphere, heptane droplet", "Heptane", ISS),
+        {"id": "model-o2-limit", "what": "oxygen limit for the condition currently selected in the dashboard",
+         "input": {"fuel": fuel, "p_atm": p_atm, "diluent": diluent, "x_diluent": x_diluent, "d0_mm": d0_mm},
+         "output": o2_limit(fuel, p_atm, diluent, x_diluent, d0_mm, target),
+         "meaning": "x_o2_max = highest O2 mole fraction at which the droplet flame still self-extinguishes with "
+                    "probability >= target; low/high = 90% interval; an estimate, not a safety standard."},
         {"id": "model-eval", "what": "cross-validated accuracy of the model", "output": cv_metrics()},
     ]
 
