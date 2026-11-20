@@ -3,6 +3,8 @@
 **NASA Space Apps Challenge 2026 · Hà Nội · Team "My team is kinda nameless"**
 Challenge: *Flame in Freefall: AI-Powered Fire Safety Insights from Microgravity Combustion Data*
 
+🥈 **Second Prize, NASA Space Apps Challenge 2026 — Hà Nội local event**
+
 An interactive dashboard that summarizes, ranks and interprets NASA's microgravity combustion
 experiments to answer one question for Moon and Mars habitats: **will a flame put itself out, and how
 fast does it burn?**
